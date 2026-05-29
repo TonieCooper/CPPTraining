@@ -1,0 +1,573 @@
+<h2 class="sr-only">CPP exam flashcards — nearly 400 cards across all seven domains, random order each session.</h2>
+
+<style>
+  .pill-row{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 1rem;}
+  .pill{font-size:13px;padding:8px 14px;background:transparent;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary);}
+  .pill.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary);font-weight:500;}
+  .pill .count{opacity:0.6;margin-left:4px;font-size:11px;}
+  .progress-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;font-size:12px;color:var(--color-text-secondary);}
+  .pbar{height:4px;background:var(--color-background-secondary);border-radius:999px;overflow:hidden;flex:1;}
+  .pfill{height:100%;background:var(--color-text-info);transition:width 0.3s ease;}
+  .card{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:32px 24px;min-height:260px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;text-align:center;position:relative;}
+  .card .domain-badge{position:absolute;top:14px;left:18px;font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;}
+  .card .q{font-size:18px;font-weight:500;line-height:1.5;color:var(--color-text-primary);}
+  .card .a{font-size:16px;line-height:1.65;color:var(--color-text-primary);}
+  .card .hint{font-size:12px;color:var(--color-text-tertiary);margin-top:18px;}
+  .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;}
+  .ctrl{padding:12px 8px;font-size:13px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary);}
+  .ctrl:hover{border-color:var(--color-border-secondary);}
+  .ctrl.learn{color:var(--color-text-danger);border-color:var(--color-border-danger);}
+  .ctrl.know{color:var(--color-text-success);border-color:var(--color-border-success);}
+  .nav-row{display:flex;justify-content:space-between;gap:8px;margin-top:8px;}
+  .nav-btn{padding:8px 14px;font-size:13px;background:transparent;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary);}
+  .nav-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .shuffle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);margin:0 0 1rem;font-size:13px;}
+  .shuffle-btn{padding:6px 14px;font-size:13px;background:var(--color-text-info);color:var(--color-background-primary);border:none;border-radius:var(--border-radius-md);cursor:pointer;font-weight:500;}
+  .stats{display:flex;gap:16px;font-size:11px;color:var(--color-text-secondary);}
+  .stats span strong{color:var(--color-text-primary);font-weight:500;font-size:13px;display:block;}
+</style>
+
+<div style="padding:1rem 0;">
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 4px;letter-spacing:0.08em;text-transform:uppercase;">PayrollOrg CPP exam</p>
+  <h2 style="font-size:22px;margin:0 0 4px;">Flashcards</h2>
+  <p style="font-size:13px;color:var(--color-text-secondary);margin:0 0 1.25rem;">395 cards · randomized every session · filter by domain</p>
+  <div id="filters" class="pill-row"></div>
+  <div id="shuffle-bar"></div>
+  <div id="card-area"></div>
+</div>
+
+<script>
+const DOMAINS=[
+{id:'A',n:'Core Payroll',w:24},
+{id:'B',n:'Compliance',w:16},
+{id:'C',n:'Paycheck Calc',w:20},
+{id:'D',n:'Process',w:12},
+{id:'E',n:'Admin',w:10},
+{id:'F',n:'Audits',w:9},
+{id:'G',n:'Accounting',w:9}
+];
+
+const CARDS=[
+// ============ DOMAIN A - 75 cards ============
+{d:'A',q:'Three prongs of the FLSA white-collar exemption test?',a:'Salary basis, salary level, duties test. All three must be met.'},
+{d:'A',q:'Three categories of the IRS common-law test?',a:'Behavioral control, financial control, type of relationship.'},
+{d:'A',q:'Federal FLSA minimum wage?',a:'$7.25/hour since 2009.'},
+{d:'A',q:'FLSA payroll record retention?',a:'3 years for payroll records; 2 years for supporting records like timecards.'},
+{d:'A',q:'I-9 Section 1 deadline?',a:'On or before the employee\u0027s first day of work for pay.'},
+{d:'A',q:'I-9 Section 2 deadline?',a:'Within 3 business days of the first day of work.'},
+{d:'A',q:'I-9 retention rule?',a:'Later of 3 years after hire OR 1 year after termination. The 3/1 rule.'},
+{d:'A',q:'New-hire reporting deadline (federal)?',a:'20 days from hire to state directory.'},
+{d:'A',q:'What is an IRS lock-in letter?',a:'IRS notice setting maximum allowances/filing status. Employer must implement within 60 days.'},
+{d:'A',q:'The two FITW calculation methods?',a:'Percentage method (formula, any wage) and wage-bracket method (table lookup, limited range). Both in Pub 15-T.'},
+{d:'A',q:'Two supplemental wage withholding methods?',a:'Aggregate method, or flat-rate method (22% to $1M, 37% mandatory over $1M).'},
+{d:'A',q:'Employee submits no W-4. How do you withhold?',a:'Default to Single/MFS with no entries in Steps 2-4. Per Pub 15-T.'},
+{d:'A',q:'What is Form SS-8?',a:'Request for IRS determination of worker status. Binding once issued.'},
+{d:'A',q:'What is E-Verify?',a:'Voluntary federal system run by USCIS/SSA that confirms I-9 data against government databases.'},
+{d:'A',q:'I-9 document lists?',a:'List A (identity AND work auth). List B (identity only). List C (work auth only). One A, OR B+C.'},
+{d:'A',q:'FLSA enterprise coverage tests?',a:'2+ employees AND $500K+ annual sales, OR hospital/school/public agency regardless of size.'},
+{d:'A',q:'What does "salary basis" mean?',a:'Predetermined guaranteed amount each pay period that doesn\u0027t vary with hours or quality.'},
+{d:'A',q:'FLSA child labor minimum age — hazardous occupations?',a:'18 years old.'},
+{d:'A',q:'$1.5 million bonus — mandatory FITW?',a:'22% × $1M + 37% × $500K = $405,000.'},
+{d:'A',q:'How does an employee claim exempt on W-4?',a:'Write "Exempt" below Step 4(c). Must have no liability last year, expect none this year. Renew by Feb 15.'},
+{d:'A',q:'What is backup withholding?',a:'24% federal tax on contractor payments when TIN is missing or wrong. Reported on Form 945.'},
+{d:'A',q:'W-4 Step 3?',a:'Dependent credits — reduces calculated withholding dollar for dollar.'},
+{d:'A',q:'W-4 Step 4(a)?',a:'Other income — additional income not from this job (adds to withholding).'},
+{d:'A',q:'W-4 Step 4(b)?',a:'Deductions above standard deduction (reduces withholding).'},
+{d:'A',q:'W-4 Step 4(c)?',a:'Extra withholding per pay period (additional dollars).'},
+{d:'A',q:'Can an employer specify which I-9 documents an employee must present?',a:'No. That is document abuse. Employee chooses from acceptable lists.'},
+{d:'A',q:'What is SSNVS?',a:'Social Security Number Verification Service — free SSA tool to confirm name/SSN matches before W-2 filing.'},
+{d:'A',q:'Executive exemption — minimum employees supervised?',a:'2 or more full-time employees (or equivalent).'},
+{d:'A',q:'Administrative exemption duties test?',a:'Office/non-manual work directly related to operations, with discretion and independent judgment on matters of significance.'},
+{d:'A',q:'Outside sales exemption — salary requirement?',a:'None. Outside sales has no minimum salary requirement.'},
+{d:'A',q:'Outside sales exemption — location requirement?',a:'Customarily and regularly engaged away from employer\u0027s place of business.'},
+{d:'A',q:'Computer employee exemption — pay structure?',a:'Can be salaried OR hourly (with minimum hourly threshold). Unique among white-collar exemptions.'},
+{d:'A',q:'Learned professional exemption — knowledge requirement?',a:'Advanced knowledge customarily acquired by prolonged course of specialized intellectual instruction (typically 4-year degree).'},
+{d:'A',q:'IRS lock-in letter — can employee submit W-4 for MORE withholding?',a:'Yes, always allowed.'},
+{d:'A',q:'IRS lock-in letter — can employee submit W-4 for LESS withholding?',a:'No, not without IRS approval.'},
+{d:'A',q:'How long is W-4 "Exempt" valid?',a:'Until February 15 of the following year. Must be renewed annually.'},
+{d:'A',q:'E-Verify tentative non-confirmation — employee has how long to resolve?',a:'8 federal working days.'},
+{d:'A',q:'During E-Verify TNC resolution period, what can employer do?',a:'Continue employment. Cannot terminate, reduce hours, or take other adverse action.'},
+{d:'A',q:'Section 530 relief — three requirements?',a:'Reasonable basis for treatment, consistent treatment, all 1099s filed.'},
+{d:'A',q:'Document abuse — what is it?',a:'Employer specifying which I-9 documents to present, requesting more docs than required, or rejecting valid docs. Carries fines per occurrence.'},
+{d:'A',q:'Improper deductions from exempt salary — consequence?',a:'Can destroy the exemption, potentially retroactively for the entire class of employees.'},
+{d:'A',q:'Standard FLSA workweek?',a:'Any fixed, regularly recurring 168-hour period (7 consecutive 24-hour days). Employer establishes.'},
+{d:'A',q:'Can different employees have different workweeks?',a:'Yes. Different departments can also have different workweeks.'},
+{d:'A',q:'Can workweeks be averaged for overtime?',a:'No. Each workweek stands alone.'},
+{d:'A',q:'"Suffer or permit to work" — what does it mean?',a:'Employee gets paid for overtime worked, even if unauthorized, if employer knew or should have known.'},
+{d:'A',q:'Working supervisor — does executive exemption apply?',a:'Only if management is the PRIMARY duty. If 60% of time is on the production line, fails the exemption.'},
+{d:'A',q:'Inside sales — outside sales exemption apply?',a:'No. Inside sales never qualifies. The employee must work away from the employer\u0027s premises.'},
+{d:'A',q:'Form W-4 — what year was it redesigned?',a:'2020. Eliminated allowances; introduced 5-step process.'},
+{d:'A',q:'Reverification of I-9 — required for citizens?',a:'No. Never required for U.S. citizens or lawful permanent residents.'},
+{d:'A',q:'Reverification of I-9 — when required?',a:'Before work authorization document expires for non-citizens with time-limited authorization.'},
+{d:'A',q:'New-hire report — is date of birth required?',a:'No. Common distractor on exam. Required: name, address, SSN, hire date, employer info.'},
+{d:'A',q:'Form W-4 — Step 1 includes what?',a:'Name, address, SSN, filing status. Required.'},
+{d:'A',q:'Form W-4 — Step 5 is what?',a:'Employee signature and date. Required.'},
+{d:'A',q:'Form W-4 — which steps are optional?',a:'Steps 2, 3, and 4.'},
+{d:'A',q:'$3,000 bonus — flat-rate FITW?',a:'22% × $3,000 = $660.'},
+{d:'A',q:'$50,000 bonus — flat-rate FITW?',a:'22% × $50,000 = $11,000.'},
+{d:'A',q:'$2,000,000 bonus — mandatory FITW?',a:'22% × $1M + 37% × $1M = $220,000 + $370,000 = $590,000.'},
+{d:'A',q:'$800,000 of YTD bonuses already, now a $500,000 bonus. Mandatory FITW on the $500K?',a:'First $200K at 22% = $44K (fills the $1M bucket), then $300K at 37% = $111K. Total $155K.'},
+{d:'A',q:'Aggregate method — when required?',a:'When supplemental and regular wages aren\u0027t separately identified, OR when no FITW has been withheld on regular wages.'},
+{d:'A',q:'Independent contractor vs. employee — written contract decides?',a:'No. Substance over form. Common-law test based on actual control, not paperwork.'},
+{d:'A',q:'Behavioral control — examples?',a:'Instructions on how/when/where to work, training, evaluation systems, sequence of tasks.'},
+{d:'A',q:'Financial control — examples?',a:'Investment in equipment, unreimbursed expenses, services available to public, opportunity for profit/loss.'},
+{d:'A',q:'Type of relationship — examples?',a:'Written contract, employee-type benefits, permanence, services key to business.'},
+{d:'A',q:'Hire date June 15, 2024. I-9 Section 2 due by?',a:'June 18, 2024 (3 business days).'},
+{d:'A',q:'Hire date Friday March 1. I-9 Section 2 due by?',a:'Wednesday March 6 (3 business days, weekends don\u0027t count).'},
+{d:'A',q:'Hired Mon May 6. Federal new-hire deadline?',a:'May 26 (20 days).'},
+{d:'A',q:'Hired Jan 1, 2020, terminated June 30, 2024. I-9 retention until?',a:'June 30, 2025 (one year after term, which is later than 3y after hire).'},
+{d:'A',q:'Hired Jan 1, 2023, terminated Mar 1, 2023. I-9 retention until?',a:'Jan 1, 2026 (3y after hire, which is later than 1y after term).'},
+{d:'A',q:'Form 668-W — what is it?',a:'IRS federal tax levy on wages.'},
+{d:'A',q:'FLSA individual coverage — what triggers it?',a:'Employee whose work involves interstate commerce. Includes phone calls across state lines, credit card transactions, mail handling, internet use.'},
+{d:'A',q:'White-collar exemption — what are the 5 categories?',a:'Executive, administrative, learned professional, computer employee, outside sales.'},
+{d:'A',q:'Highly compensated employee exemption — relaxed duties test?',a:'Yes. Easier to qualify; needs only ONE exempt duty regularly performed, plus high salary.'},
+{d:'A',q:'Misclassification settlements — typical size for large employers?',a:'Often in the tens of millions; some have topped $100 million.'},
+{d:'A',q:'Form W-4 default — what if employee declines to submit?',a:'Single/MFS with no other entries. Don\u0027t guess; use the default.'},
+{d:'A',q:'Common-law test — primary factor across all three categories?',a:'Control. The more control, the more likely employee status.'},
+
+// ============ DOMAIN B - 55 cards ============
+{d:'B',q:'Social Security tax rate (employee)?',a:'6.2% of Social Security wages.'},
+{d:'B',q:'Social Security tax rate (employer)?',a:'6.2% match.'},
+{d:'B',q:'Social Security combined rate?',a:'12.4%.'},
+{d:'B',q:'Medicare tax rate (employee)?',a:'1.45%.'},
+{d:'B',q:'Medicare tax rate (employer)?',a:'1.45% match.'},
+{d:'B',q:'Medicare combined rate?',a:'2.9%.'},
+{d:'B',q:'Medicare wage base?',a:'None. Applies to all FICA wages.'},
+{d:'B',q:'Additional Medicare Tax rate?',a:'0.9%.'},
+{d:'B',q:'Additional Medicare Tax — wage threshold for withholding?',a:'$200,000 YTD at this employer. Employer always uses single-filer $200K threshold.'},
+{d:'B',q:'Additional Medicare Tax — employer match?',a:'None. Employee only.'},
+{d:'B',q:'FUTA rate (statutory)?',a:'6.0%.'},
+{d:'B',q:'FUTA effective rate with timely SUTA?',a:'0.6% (6.0% − 5.4% credit).'},
+{d:'B',q:'FUTA wage base?',a:'$7,000 per employee per year.'},
+{d:'B',q:'Maximum FUTA per employee per year at effective rate?',a:'$42 ($7,000 × 0.6%).'},
+{d:'B',q:'Maximum SUTA credit against FUTA?',a:'5.4 percentage points.'},
+{d:'B',q:'Credit reduction state — first-year reduction?',a:'0.3 percentage points.'},
+{d:'B',q:'FUTA deposit threshold?',a:'Required when quarterly liability exceeds $500. Otherwise carries forward.'},
+{d:'B',q:'Form 940 due date?',a:'January 31 (10-day extension to Feb 10 if all deposits timely).'},
+{d:'B',q:'Form 941 due dates?',a:'April 30, July 31, October 31, January 31. 10-day extension if deposits timely.'},
+{d:'B',q:'Who enforces the FLSA?',a:'DOL Wage and Hour Division.'},
+{d:'B',q:'Who administers Form I-9?',a:'USCIS within Department of Homeland Security.'},
+{d:'B',q:'Where are W-2s filed?',a:'Social Security Administration. SSA shares data with IRS.'},
+{d:'B',q:'Form 941 reports what?',a:'Federal income tax withheld, plus FICA (employer + employee).'},
+{d:'B',q:'Form 940 reports what?',a:'FUTA — annual federal unemployment tax.'},
+{d:'B',q:'Form 945 reports what?',a:'Non-payroll federal income tax (pensions, gambling, backup withholding). Due Jan 31.'},
+{d:'B',q:'Does Social Security wage base transfer between employers?',a:'No. Resets at each employer. Employee gets credit for excess on Form 1040.'},
+{d:'B',q:'IRS Publication 15 — what is it?',a:'Circular E — general guide for federal income tax withholding.'},
+{d:'B',q:'IRS Publication 15-T — what is it?',a:'Technical methods document with withholding tables and percentage method formulas.'},
+{d:'B',q:'IRS Publication 15-B — what is it?',a:'Employer\u0027s Tax Guide to Fringe Benefits.'},
+{d:'B',q:'IRS Publication 1494 — what is it?',a:'Exempt amounts for federal tax levies (Form 668-W).'},
+{d:'B',q:'Section 530 relief — what does it protect against?',a:'Retroactive worker reclassification by IRS.'},
+{d:'B',q:'ACA Section 6056 — what is it?',a:'Reporting by Applicable Large Employers on Form 1095-C (health coverage offers).'},
+{d:'B',q:'1095-C due to employees by?',a:'January 31.'},
+{d:'B',q:'Applicable Large Employer (ALE) threshold under ACA?',a:'50 or more full-time equivalent employees.'},
+{d:'B',q:'EBSA — what is it?',a:'Employee Benefits Security Administration — DOL agency administering ERISA.'},
+{d:'B',q:'OSHA — what is it?',a:'Occupational Safety and Health Administration, part of DOL.'},
+{d:'B',q:'Who administers FUTA?',a:'IRS.'},
+{d:'B',q:'Who administers SUTA?',a:'Each state\u0027s unemployment agency.'},
+{d:'B',q:'YTD wages $210,000, current paycheck $10,000. Total Medicare withholding?',a:'1.45% × $10K + 0.9% × $10K = $145 + $90 = $235.'},
+{d:'B',q:'YTD wages $190,000, current paycheck $20,000. Additional Medicare withholding amount?',a:'On the $10,000 over the $200K threshold: 0.9% × $10K = $90.'},
+{d:'B',q:'YTD SS wages $170,000, SS base $176,100. This paycheck $10,000. SS tax?',a:'Only $6,100 still subject. $6,100 × 6.2% = $378.20.'},
+{d:'B',q:'Form 941-X — what is it?',a:'Adjusted Employer\u0027s Quarterly Federal Tax Return — corrects a previously filed 941.'},
+{d:'B',q:'941-X refund claim statute of limitations?',a:'3 years from original 941 filing, or 2 years from tax paid, whichever later.'},
+{d:'B',q:'Who pays FUTA?',a:'Employer only. No employee contribution.'},
+{d:'B',q:'Who pays SUTA?',a:'Generally employer only. A few states (AK, NJ, PA) also have employee SUTA contributions.'},
+{d:'B',q:'CCPA — what is it?',a:'Consumer Credit Protection Act. Sets federal limits on wage garnishments.'},
+{d:'B',q:'PRWORA — what is it?',a:'Personal Responsibility and Work Opportunity Reconciliation Act. Includes child support and new-hire reporting rules.'},
+{d:'B',q:'ERISA — what does it cover?',a:'Employee Retirement Income Security Act. Most private-sector retirement and welfare benefit plans.'},
+{d:'B',q:'ACA — what is it?',a:'Affordable Care Act. Source of Additional Medicare Tax, employer mandate, 1095-C reporting.'},
+{d:'B',q:'TCJA — what is it?',a:'Tax Cuts and Jobs Act (2017). Changed supplemental wage rate, suspended bicycle commuting benefit, others.'},
+{d:'B',q:'Schedule A of Form 940 — when required?',a:'When employer has employees in more than one state, OR in any credit reduction state.'},
+{d:'B',q:'IRS Form 4070 — what is it?',a:'Employee\u0027s Report of Tips to Employer. Filed at least monthly by employees with $10+/month in tips.'},
+{d:'B',q:'IRS Form 8919 — what is it?',a:'Employee files when treated as contractor but believes employee status is correct. Reports SS/Medicare owed.'},
+{d:'B',q:'IRS Form 8959 — what is it?',a:'Additional Medicare Tax — employee reconciles actual liability vs. withholding on personal return.'},
+{d:'B',q:'EFTPS — what is it?',a:'Electronic Federal Tax Payment System. How employers deposit federal taxes.'},
+
+// ============ DOMAIN C - 65 cards ============
+{d:'C',q:'Regular rate formula?',a:'Total remuneration for the workweek (minus statutory exclusions) ÷ Total hours worked.'},
+{d:'C',q:'Discretionary bonus — included in regular rate?',a:'No, IF truly discretionary (both fact and amount in employer\u0027s sole discretion). Most bonuses don\u0027t qualify.'},
+{d:'C',q:'Non-discretionary bonus — included in regular rate?',a:'Yes. Announced, promised, or expected bonuses must be in regular rate.'},
+{d:'C',q:'Federal tipped employee cash wage minimum?',a:'$2.13/hour.'},
+{d:'C',q:'Federal maximum tip credit?',a:'$5.12/hour.'},
+{d:'C',q:'Federal minimum wage for tipped employees (cash + tips)?',a:'$7.25/hour combined.'},
+{d:'C',q:'FWW overtime premium?',a:'0.5× regular rate × OT hours. Salary already covers straight time on all hours.'},
+{d:'C',q:'Five requirements for fluctuating workweek (FWW)?',a:'Fixed salary, salary at/above min wage in highest week, hours fluctuate above AND below 40, clear mutual understanding, additional 0.5× for OT.'},
+{d:'C',q:'Multiple rates — default OT method?',a:'Weighted average: total straight-time earnings ÷ total hours = regular rate.'},
+{d:'C',q:'Section 125 deduction — FITW treatment?',a:'Exempt.'},
+{d:'C',q:'Section 125 deduction — FICA treatment?',a:'Exempt (from both SS and Medicare).'},
+{d:'C',q:'Section 125 deduction — FUTA treatment?',a:'Exempt.'},
+{d:'C',q:'Section 125 — what major exception requires special treatment?',a:'Adoption assistance — exempt from FITW only, still subject to FICA and FUTA.'},
+{d:'C',q:'Traditional 401(k) — FITW treatment?',a:'Exempt.'},
+{d:'C',q:'Traditional 401(k) — FICA treatment?',a:'Subject. Common exam trap.'},
+{d:'C',q:'Traditional 401(k) — FUTA treatment?',a:'Subject.'},
+{d:'C',q:'Roth 401(k) — tax treatment?',a:'Subject to all four (FITW, SS, Medicare, FUTA). After-tax contribution.'},
+{d:'C',q:'Roth 401(k) W-2 Box 12 code?',a:'Code AA.'},
+{d:'C',q:'Traditional 401(k) W-2 Box 12 code?',a:'Code D.'},
+{d:'C',q:'GTL over $50K — FITW treatment?',a:'Exempt.'},
+{d:'C',q:'GTL over $50K — FICA treatment?',a:'Subject (both SS and Medicare).'},
+{d:'C',q:'GTL over $50K — FUTA treatment?',a:'Exempt.'},
+{d:'C',q:'GTL over $50K W-2 Box 12 code?',a:'Code C.'},
+{d:'C',q:'GTL — coverage threshold for imputed income?',a:'Anything over $50,000. Exactly $50K = no imputed income.'},
+{d:'C',q:'GTL imputed income — Table I rate at age 45?',a:'$0.15 per $1,000 of coverage per month.'},
+{d:'C',q:'CCPA child support max — supports other, current?',a:'50% of disposable earnings.'},
+{d:'C',q:'CCPA child support max — supports other, 12+ wk arrears?',a:'55% of disposable earnings.'},
+{d:'C',q:'CCPA child support max — no other dependent, current?',a:'60% of disposable earnings.'},
+{d:'C',q:'CCPA child support max — no other dependent, 12+ wk arrears?',a:'65% of disposable earnings.'},
+{d:'C',q:'CCPA creditor garnishment cap?',a:'Lesser of: 25% of disposable earnings, OR amount over 30 × federal min wage ($217.50/week).'},
+{d:'C',q:'30 × federal minimum wage (weekly)?',a:'$217.50 (30 × $7.25).'},
+{d:'C',q:'What is disposable earnings?',a:'Gross wages minus legally REQUIRED deductions (FITW, FICA, state tax, mandatory retirement). Voluntary deductions don\u0027t reduce.'},
+{d:'C',q:'Section 125 medical — reduces disposable earnings for garnishment?',a:'No. Disposable earnings excludes voluntary deductions even if pre-tax.'},
+{d:'C',q:'Garnishment priority order?',a:'Bankruptcy → federal tax levy → child support → state tax levy → student loan → creditor.'},
+{d:'C',q:'Federal student loan garnishment cap?',a:'Lesser of 15% disposable OR 25% CCPA cap.'},
+{d:'C',q:'Federal tax levy — subject to CCPA cap?',a:'No. Uses Pub 1494 exempt amount instead.'},
+{d:'C',q:'Federal tax levy form?',a:'Form 668-W.'},
+{d:'C',q:'HSA via Section 125 — tax treatment?',a:'Exempt from all four (FITW, SS, Medicare, FUTA).'},
+{d:'C',q:'HSA direct payroll (not via Section 125) — tax treatment?',a:'Exempt FITW only. Subject to FICA and FUTA.'},
+{d:'C',q:'HSA W-2 Box 12 code?',a:'Code W.'},
+{d:'C',q:'Adoption assistance W-2 Box 12 code?',a:'Code T.'},
+{d:'C',q:'Dependent care FSA — annual cap?',a:'$5,000 (single/MFJ); $2,500 (MFS).'},
+{d:'C',q:'Dependent care FSA — tax treatment?',a:'Exempt from all four. Always through Section 125.'},
+{d:'C',q:'Dependent care benefits — which W-2 box?',a:'Box 10.'},
+{d:'C',q:'Tip pool — managers/supervisors allowed?',a:'No. Never. Regardless of whether tip credit is taken.'},
+{d:'C',q:'Comp time in lieu of overtime — allowed in private sector?',a:'No. Public sector only.'},
+{d:'C',q:'Public sector comp time — accrual rate?',a:'1.5 hours per overtime hour worked.'},
+{d:'C',q:'Public sector comp time — max accrual (general)?',a:'240 hours.'},
+{d:'C',q:'Public sector comp time — max accrual (public safety/EMS)?',a:'480 hours.'},
+{d:'C',q:'Section 7(k) exemption — 28-day work period OT threshold (fire)?',a:'212 hours.'},
+{d:'C',q:'Section 7(k) exemption — 28-day work period OT threshold (police)?',a:'171 hours.'},
+{d:'C',q:'Qualified transportation fringe — tax treatment?',a:'Parking and transit exempt from all four up to monthly IRS limit.'},
+{d:'C',q:'Section 127 educational assistance — annual limit?',a:'$5,250.'},
+{d:'C',q:'Section 127 educational assistance — tax treatment?',a:'Exempt from all four within the limit.'},
+{d:'C',q:'$15/hr × 45 hrs + $100 bonus. Regular rate?',a:'($675 + $100) ÷ 45 = $17.22.'},
+{d:'C',q:'Regular rate $17.22, 5 OT hours. OT premium?',a:'0.5 × $17.22 × 5 = $43.06.'},
+{d:'C',q:'$1,000/week salary FWW, 50 hours. OT premium?',a:'$1,000 ÷ 50 = $20 regular rate. 0.5 × $20 × 10 = $100.'},
+{d:'C',q:'$1,000/week salary FWW, 50 hours. Total pay?',a:'$1,000 + $100 OT premium = $1,100.'},
+{d:'C',q:'Service charge to server — tip or wages?',a:'Regular wages. Service charges are employer property paid as wages. In regular rate.'},
+{d:'C',q:'8% tip allocation rule — applies to whom?',a:'Large food/beverage establishments (normally 10+ employees in F&B operations).'},
+{d:'C',q:'Allocated tips — which W-2 box?',a:'Box 8.'},
+{d:'C',q:'Uncollected SS tax on tips — W-2 Box 12 code?',a:'Code A.'},
+{d:'C',q:'Uncollected Medicare tax on tips — W-2 Box 12 code?',a:'Code B.'},
+{d:'C',q:'25 hours @ $15 + 25 hours @ $20. Regular rate?',a:'($375 + $500) ÷ 50 = $17.50.'},
+{d:'C',q:'Personal use of company car — tax treatment?',a:'Subject to all four. Employer may elect to not withhold FITW (employee owes on personal return).'},
+
+// ============ DOMAIN D - 50 cards ============
+{d:'D',q:'Five phases of a payroll cycle?',a:'Input, Processing, Output, Post-processing, Reporting.'},
+{d:'D',q:'SUI four-factor test — order?',a:'1) Localization, 2) Base of operations, 3) Direction and control, 4) Residence. Sequential — stop at first answer.'},
+{d:'D',q:'SUI factor 1 — localization of services?',a:'Work performed entirely or predominantly in one state, with other-state work temporary/transitory.'},
+{d:'D',q:'SUI factor 2 — base of operations?',a:'Where employee starts/returns, keeps supplies, receives instructions.'},
+{d:'D',q:'SUI factor 3 — direction and control?',a:'Where employer\u0027s direction is, IF employee performs services there.'},
+{d:'D',q:'SUI factor 4 — residence?',a:'Employee\u0027s state of residence. Last resort if no other factor applies.'},
+{d:'D',q:'Mandatory SDI states?',a:'California, New Jersey, New York, Rhode Island, Hawaii, Puerto Rico.'},
+{d:'D',q:'California SDI — funded by?',a:'100% employee.'},
+{d:'D',q:'Rhode Island TDI — funded by?',a:'100% employee.'},
+{d:'D',q:'New York DBL — funded by?',a:'Employer (can deduct up to $0.60/week from employee).'},
+{d:'D',q:'IRS payroll tax retention?',a:'4 years after due date or payment, whichever later.'},
+{d:'D',q:'FLSA payroll retention?',a:'3 years.'},
+{d:'D',q:'FLSA supporting records retention?',a:'2 years.'},
+{d:'D',q:'I-9 retention?',a:'Later of 3 years after hire OR 1 year after termination.'},
+{d:'D',q:'ERISA benefit plan retention?',a:'6 years.'},
+{d:'D',q:'OSHA injury/illness records retention?',a:'5 years.'},
+{d:'D',q:'Pattern for payroll retention rules?',a:'2 (FLSA support), 3 (FLSA payroll), 4 (IRS), 5 (OSHA), 6 (ERISA). Plus I-9 3/1 rule.'},
+{d:'D',q:'SOC 1 report scope?',a:'Controls relevant to user entity\u0027s financial reporting. Most common for payroll vendors.'},
+{d:'D',q:'SOC 2 report scope?',a:'Trust Services Criteria — Security, Availability, Processing Integrity, Confidentiality, Privacy.'},
+{d:'D',q:'SOC 3 report?',a:'Public-facing summary of SOC 2. Can be shared without NDA.'},
+{d:'D',q:'SOC Type I vs Type II?',a:'Type I: design at point in time. Type II: operating effectiveness over 6-12 months. Type II is more rigorous.'},
+{d:'D',q:'Reciprocity agreement — how does it work?',a:'Residents pay state income tax only to home state. Employee files non-residency certificate with work-state employer.'},
+{d:'D',q:'Common reciprocity pair: Pennsylvania and?',a:'New Jersey (also Indiana, Maryland, Ohio, Virginia, West Virginia).'},
+{d:'D',q:'Convenience-of-employer rule — what states?',a:'New York (most aggressive), plus Connecticut, Delaware, Nebraska, Pennsylvania, Arkansas.'},
+{d:'D',q:'Form 8922 — what is it?',a:'Third-Party Sick Pay Recap. Reconciles when third party paying sick pay is not employer\u0027s agent.'},
+{d:'D',q:'Form W-4S — purpose?',a:'Employee elects federal income tax withholding from third-party sick pay.'},
+{d:'D',q:'Sick pay FICA — six-month rule?',a:'Subject to FICA for first 6 calendar months after employee last worked. Exempt after.'},
+{d:'D',q:'Sick pay FITW — automatic?',a:'No. Only if employee submits W-4S to third-party payer.'},
+{d:'D',q:'Workers compensation benefits — taxable?',a:'Generally not — exempt from FITW, FICA, FUTA.'},
+{d:'D',q:'Three types of internal controls?',a:'Preventive, Detective, Corrective.'},
+{d:'D',q:'Most important payroll control?',a:'Segregation of duties.'},
+{d:'D',q:'Segregation of duties example?',a:'Person who adds employees should NOT also approve payroll. Different person signs checks vs. reconciles bank account.'},
+{d:'D',q:'Regulation E — what does it cover?',a:'Electronic fund transfers including direct deposit and paycards. Disclosures, error resolution, free withdrawal.'},
+{d:'D',q:'Reg E paycard error resolution window?',a:'60 days for employee to dispute. 10 business days to investigate, 45 days to resolve.'},
+{d:'D',q:'Reg E paycard — required free access?',a:'At least one withdrawal of full balance per pay period without fee.'},
+{d:'D',q:'NACHA — what is it?',a:'National Automated Clearing House Association. Governs ACH transactions including direct deposit.'},
+{d:'D',q:'Prenote — what is it?',a:'Test ACH transaction to verify a new direct deposit account is valid. Optional under NACHA.'},
+{d:'D',q:'Parallel testing — what is it?',a:'Running old and new payroll systems side-by-side, reconciling variances, before go-live cutover.'},
+{d:'D',q:'Escheatment — what is it?',a:'Turning over unclaimed property (uncashed checks) to state after dormancy period.'},
+{d:'D',q:'Typical escheatment dormancy period?',a:'1 to 5 years depending on state. Most common is 3 years.'},
+{d:'D',q:'California final pay timing (involuntary)?',a:'Same day as termination.'},
+{d:'D',q:'Most states final pay timing?',a:'Next regular payday.'},
+{d:'D',q:'Pay lag — what is it?',a:'Time between end of pay period and pay date. State law usually caps at 7-15 days.'},
+{d:'D',q:'27th biweekly pay period — occurs how often?',a:'Roughly every 11 years, due to calendar alignment.'},
+{d:'D',q:'PEO vs ASO — difference?',a:'PEO is co-employer; ASO is administrative services only (you remain employer of record).'},
+{d:'D',q:'PEO — Professional Employer Organization?',a:'Outsourcing vendor that becomes legal co-employer. Handles all payroll, taxes, benefits.'},
+{d:'D',q:'Local income taxes — which states most affected?',a:'Pennsylvania (EIT, LST), Ohio (municipal), Indiana (county), Kentucky, Maryland (county), New York City.'},
+{d:'D',q:'Texas — workers comp required?',a:'No. Texas is the only state where it\u0027s optional (non-subscribers face tort liability).'},
+{d:'D',q:'PFL — Paid Family Leave states (some)?',a:'CA, NJ, NY, RI, WA, MA, CT, OR, CO. More coming (DE, MD, MN).'},
+{d:'D',q:'Total Cost of Ownership — what to include for payroll vendor?',a:'Subscription/license, implementation, training, integrations, year-end fees, off-cycle fees, internal staff time, exit costs.'},
+
+// ============ DOMAIN E - 50 cards ============
+{d:'E',q:'$100,000 next-day deposit rule?',a:'Liability $100K on any day → deposit by next business day. Moves employer to semiweekly status for rest of year + all of next year.'},
+{d:'E',q:'Monthly depositor threshold?',a:'Lookback liability ≤ $50,000.'},
+{d:'E',q:'Semiweekly depositor threshold?',a:'Lookback liability > $50,000.'},
+{d:'E',q:'Lookback period for a given year?',a:'July 1 of two years before, through June 30 of the prior year.'},
+{d:'E',q:'Monthly depositor — deposit deadline?',a:'15th of the following month.'},
+{d:'E',q:'Semiweekly — Wed/Thu/Fri payday — deposit by?',a:'Following Wednesday.'},
+{d:'E',q:'Semiweekly — Sat/Sun/Mon/Tue payday — deposit by?',a:'Following Friday.'},
+{d:'E',q:'Form 941 Q1 due date?',a:'April 30.'},
+{d:'E',q:'Form 941 Q2 due date?',a:'July 31.'},
+{d:'E',q:'Form 941 Q3 due date?',a:'October 31.'},
+{d:'E',q:'Form 941 Q4 due date?',a:'January 31.'},
+{d:'E',q:'Form 941 ten-day extension condition?',a:'All required deposits made on time AND in full during the quarter.'},
+{d:'E',q:'Form 940 due date?',a:'January 31 (Feb 10 with extension).'},
+{d:'E',q:'W-2 due to employees by?',a:'January 31.'},
+{d:'E',q:'W-2/W-3 due to SSA by?',a:'January 31.'},
+{d:'E',q:'1099-NEC due (recipient AND IRS)?',a:'January 31 for both.'},
+{d:'E',q:'1099-MISC due to recipient by?',a:'January 31.'},
+{d:'E',q:'1099-MISC due to IRS (paper)?',a:'February 28.'},
+{d:'E',q:'1099-MISC due to IRS (electronic)?',a:'March 31.'},
+{d:'E',q:'1095-C ACA form due to employees?',a:'January 31.'},
+{d:'E',q:'E-file threshold for information returns?',a:'10 or more total returns (combined W-2s and 1099s). Reduced from 250 for tax year 2023+.'},
+{d:'E',q:'Late deposit penalty — 1-5 days?',a:'2%.'},
+{d:'E',q:'Late deposit penalty — 6-15 days?',a:'5%.'},
+{d:'E',q:'Late deposit penalty — 16+ days?',a:'10%.'},
+{d:'E',q:'Late deposit penalty — after IRS notice?',a:'15%.'},
+{d:'E',q:'W-2 Box 1?',a:'Wages, tips, and other compensation subject to FITW.'},
+{d:'E',q:'W-2 Box 2?',a:'Federal income tax withheld.'},
+{d:'E',q:'W-2 Box 3?',a:'Social Security wages (capped at SS wage base).'},
+{d:'E',q:'W-2 Box 4?',a:'Social Security tax withheld.'},
+{d:'E',q:'W-2 Box 5?',a:'Medicare wages (no cap).'},
+{d:'E',q:'W-2 Box 6?',a:'Medicare tax withheld (includes Additional Medicare).'},
+{d:'E',q:'W-2 Box 7?',a:'Social Security tips.'},
+{d:'E',q:'W-2 Box 8?',a:'Allocated tips.'},
+{d:'E',q:'W-2 Box 10?',a:'Dependent care benefits.'},
+{d:'E',q:'W-2 Box 11?',a:'Non-qualified plan distributions.'},
+{d:'E',q:'W-2 Box 12 — Code D?',a:'Traditional 401(k) elective deferral.'},
+{d:'E',q:'W-2 Box 12 — Code E?',a:'Traditional 403(b) elective deferral.'},
+{d:'E',q:'W-2 Box 12 — Code G?',a:'Traditional 457(b) elective deferral.'},
+{d:'E',q:'W-2 Box 12 — Code DD?',a:'Cost of employer-sponsored health coverage (ACA reporting, informational).'},
+{d:'E',q:'W-2 Box 12 — Code AA?',a:'Roth 401(k).'},
+{d:'E',q:'W-2 Box 12 — Code BB?',a:'Roth 403(b).'},
+{d:'E',q:'W-2 Box 12 — Code EE?',a:'Roth 457(b).'},
+{d:'E',q:'W-2 Box 12 — Code W?',a:'HSA contributions (employee and employer).'},
+{d:'E',q:'W-2 Box 12 — Code T?',a:'Adoption benefits.'},
+{d:'E',q:'W-2 Box 12 — Code C?',a:'GTL coverage over $50,000.'},
+{d:'E',q:'W-2 Box 12 — Code A?',a:'Uncollected SS tax on tips.'},
+{d:'E',q:'W-2 Box 12 — Code B?',a:'Uncollected Medicare tax on tips.'},
+{d:'E',q:'W-2 Box 12 — Code J?',a:'Nontaxable sick pay.'},
+{d:'E',q:'Box 1 vs Box 3 vs Box 5 — differ because of?',a:'Pre-tax deductions affect bases differently. Box 1 excludes 401(k); Box 3 doesn\u0027t. Box 5 has no cap; Box 3 capped at SS wage base.'},
+{d:'E',q:'New employer depositor status?',a:'Monthly depositor by default until lookback period applies (~18 months in).'},
+
+// ============ DOMAIN F - 50 cards ============
+{d:'F',q:'CAWR — what does it stand for?',a:'Combined Annual Wage Reporting.'},
+{d:'F',q:'CAWR — what does it do?',a:'Annual IRS/SSA matching of W-2 totals to four 941 totals per employer.'},
+{d:'F',q:'CAWR mismatch — what happens?',a:'IRS sends Letter 98C. Employer has 45 days to respond with explanation/documentation.'},
+{d:'F',q:'CAWR response window?',a:'45 days from receipt of letter.'},
+{d:'F',q:'Common CAWR mismatch cause?',a:'W-2c filed without matching 941-X (or vice versa). Or third-party sick pay reporting inconsistencies.'},
+{d:'F',q:'SSA no-match letter — what does it indicate?',a:'Name/SSN combination on a W-2 does not match SSA records.'},
+{d:'F',q:'SSA no-match letter — what does it NOT mean?',a:'Does NOT mean employee is unauthorized to work. Adverse action based solely on letter creates discrimination liability.'},
+{d:'F',q:'SSA no-match — proper first step?',a:'Check internal records for typos. Compare to original I-9 and W-4.'},
+{d:'F',q:'SSA no-match — second step?',a:'Ask employee to verify name and SSN against Social Security card.'},
+{d:'F',q:'SSA no-match — if employee resolves?',a:'Update records and file W-2c.'},
+{d:'F',q:'Most common payroll audit finding?',a:'Worker misclassification.'},
+{d:'F',q:'IRS payroll tax audit — typical lookback?',a:'3 years (standard); 6 years for substantial understatement; no limit for fraud.'},
+{d:'F',q:'DOL wage-and-hour audit — typical lookback?',a:'2 years (non-willful); 3 years (willful).'},
+{d:'F',q:'DOL liquidated damages?',a:'Equal to back wages. Effectively doubles the bill unless employer shows good faith.'},
+{d:'F',q:'Audit trail — six questions to answer?',a:'What changed, who, when, why, before/after values, who approved.'},
+{d:'F',q:'Worst audit trail weakness?',a:'Shared user accounts (e.g., "payroll1"). Obscures who actually made changes.'},
+{d:'F',q:'IRS Form 941-X — two checkbox options?',a:'Adjusted return (apply to current quarter) OR claim for refund (request money back).'},
+{d:'F',q:'Form W-2c — what does it correct?',a:'Information previously reported on a W-2 to SSA and employee.'},
+{d:'F',q:'Form W-3c — what is it?',a:'Transmittal that accompanies W-2c filings to SSA.'},
+{d:'F',q:'When does 941-X travel with W-2c?',a:'When the error affects both — typically wages or tax changes. IRS/SSA cross-reference.'},
+{d:'F',q:'Audit IDR — what is it?',a:'Information Document Request — formal IRS request for documents in an audit.'},
+{d:'F',q:'Fringe benefit audit findings — common items missed?',a:'Personal use of company car, gift cards, spouse travel, awards over limits, domestic partner benefits.'},
+{d:'F',q:'Gift cards — de minimis?',a:'Never. Cash and cash equivalents (including gift cards) are always taxable regardless of amount.'},
+{d:'F',q:'Off-the-clock work — common issue?',a:'Auto-deducted lunches when employees actually worked through. Pre/post-shift work not paid.'},
+{d:'F',q:'Donning and doffing — compensable?',a:'Yes, in industries where it has been ruled compensable (e.g., meatpacking, certain manufacturing).'},
+{d:'F',q:'Tip credit notice requirement?',a:'Employer must provide written notice to tipped employees before taking the credit. Failure forfeits the credit.'},
+{d:'F',q:'IRS appeals — timeline after audit report?',a:'30 days to file protest with Office of Appeals.'},
+{d:'F',q:'Audit prep — single point of contact?',a:'Yes. One person coordinates all auditor requests to prevent inconsistent responses and allow review before disclosure.'},
+{d:'F',q:'Section 530 relief — what makes the safe harbor reliable?',a:'Reasonable basis + consistent treatment + filed all 1099s. All three required.'},
+{d:'F',q:'CAWR letter response — what to provide?',a:'Reconciliation explanation, supporting documentation (registers, 941s, W-2 detail), any amended filings.'},
+{d:'F',q:'Litigation hold — what is it?',a:'Suspending normal record destruction when litigation is reasonably anticipated. Required by law.'},
+{d:'F',q:'Spoliation — consequence?',a:'Adverse jury instructions, monetary sanctions, possible case dismissal. Avoid by implementing litigation hold.'},
+{d:'F',q:'IRS Form 668-D — what is it?',a:'Release of Levy. Stops a previously issued wage levy.'},
+{d:'F',q:'Worker misclassification penalties — what stacks?',a:'Back employment taxes + interest + penalties + state unemployment + state income tax + workers comp + potential class action.'},
+{d:'F',q:'Internal audit — purpose?',a:'Proactive review by internal team. Catches issues before external scrutiny.'},
+{d:'F',q:'External financial audit — what tests payroll?',a:'Tests payroll\u0027s GL impact and key controls. Often relies on payroll vendor\u0027s SOC 1 report.'},
+{d:'F',q:'Audit findings — typical IRS scope areas?',a:'Worker classification, fringe benefits, executive comp, tip reporting, backup withholding, deposit timing.'},
+{d:'F',q:'Audit findings — typical DOL scope areas?',a:'Misclassification, off-the-clock work, regular rate errors, recordkeeping, child labor, FMLA.'},
+{d:'F',q:'CAWR — common cause #2?',a:'Third-party sick pay reported on one filing but not the other.'},
+{d:'F',q:'CAWR — common cause #3?',a:'Group-term life imputed income on W-2 but not 941.'},
+{d:'F',q:'CAWR — common cause #4?',a:'Tip reporting errors.'},
+{d:'F',q:'CAWR — preventing letters?',a:'Reconcile annually before filing W-2. Sum four 941s. Compare to W-3 totals line by line.'},
+{d:'F',q:'IRS audit — initial document request?',a:'Information Document Request (IDR). Lists records needed for review.'},
+{d:'F',q:'IRS audit — closing conference?',a:'Final meeting before audit report issued. Last chance to discuss findings before formal report.'},
+{d:'F',q:'IRS audit — Notice of Deficiency?',a:'Formal proposed assessment. Triggers 30-day right to appeal to Office of Appeals.'},
+{d:'F',q:'Tax Court — when can employer file?',a:'After Notice of Deficiency, before paying tax. Generally requires no prepayment.'},
+{d:'F',q:'DOL audit triggers?',a:'Most common is employee complaint. Also industry-targeted initiatives, random compliance reviews.'},
+{d:'F',q:'CAWR letter — penalty for no response?',a:'IRS may propose assessment based on higher figure. Plus interest and penalties.'},
+{d:'F',q:'Bargain purchase — taxable?',a:'Difference between FMV and purchase price is taxable, unless qualified employee discount safe harbor applies.'},
+{d:'F',q:'Employee achievement award — exclusion limit (non-qualified plan)?',a:'$400 per employee per year. Qualified plan: $1,600. Cash never qualifies.'},
+
+// ============ DOMAIN G - 50 cards ============
+{d:'G',q:'Debits — increase what?',a:'Assets and expenses. Decrease liabilities, equity, revenue.'},
+{d:'G',q:'Credits — increase what?',a:'Liabilities, equity, revenue. Decrease assets and expenses.'},
+{d:'G',q:'Every journal entry must?',a:'Balance — total debits = total credits.'},
+{d:'G',q:'Wages Expense — normal balance?',a:'Debit.'},
+{d:'G',q:'Wages Payable — normal balance?',a:'Credit (liability).'},
+{d:'G',q:'FITW Payable — normal balance?',a:'Credit (liability).'},
+{d:'G',q:'Cash — normal balance?',a:'Debit (asset).'},
+{d:'G',q:'Standard payroll entry — gross wages side?',a:'Debit Wages Expense. Credit FITW Payable, FICA Payable, deduction payables, and Cash or Wages Payable for net.'},
+{d:'G',q:'Standard payroll entry — employer-side taxes?',a:'Debit Payroll Tax Expense and Benefits Expense. Credit employer FICA Payable, FUTA Payable, SUTA Payable, benefit payables.'},
+{d:'G',q:'Employer 401(k) match — wages?',a:'No. Not wages. Not subject to any payroll tax.'},
+{d:'G',q:'Cash basis accounting — when recognize expense?',a:'When cash leaves the bank.'},
+{d:'G',q:'Accrual basis accounting — when recognize expense?',a:'When earned by employee (work performed).'},
+{d:'G',q:'GAAP requires which basis?',a:'Accrual.'},
+{d:'G',q:'Period-end payroll accrual entry?',a:'Debit Wages Expense, Payroll Tax Expense, Benefits Expense. Credit Accrued Wages Payable, Accrued Payroll Tax Payable, Accrued Benefits Payable.'},
+{d:'G',q:'Reversing entry — when?',a:'Start of next period. Reverses period-end accrual so actual payroll posts normally.'},
+{d:'G',q:'Why reverse accruals?',a:'So actual payroll posts normally without double-counting. Net effect correct in each period.'},
+{d:'G',q:'Net pay entry when checks issued?',a:'Debit Wages Payable. Credit Cash.'},
+{d:'G',q:'Tax deposit entry?',a:'Debit FITW Payable, FICA Payable. Credit Cash.'},
+{d:'G',q:'Bank reconciliation — frequency?',a:'Monthly minimum. Match statement to GL payroll cash account.'},
+{d:'G',q:'Quarterly 941 to GL reconciliation — what compares?',a:'Sum payroll registers vs 941 line items. Wages = Line 2. FITW = Line 3. FICA lines 5a-c.'},
+{d:'G',q:'CAWR reconciliation — what compares?',a:'Sum of four 941s vs W-3 totals. Must tie line by line.'},
+{d:'G',q:'Largest accounting failure in payroll?',a:'Letting reconciliation differences accumulate. Each one compounds into the next period.'},
+{d:'G',q:'Wages $10,000, FITW $1,000, FICA $765 (employee), pre-tax med $500, 401(k) $400. Net pay?',a:'$10,000 - $1,000 - $765 - $500 - $400 = $7,335.'},
+{d:'G',q:'Gross $2,000, FITW $200, SS $124, Medicare $29. Net pay?',a:'$2,000 - $200 - $124 - $29 = $1,647.'},
+{d:'G',q:'Where does net pay go in a journal entry?',a:'Credit to Cash (when paid) or Credit to Wages Payable (when accrued).'},
+{d:'G',q:'Employer FICA — wages or expense?',a:'Expense (Payroll Tax Expense). Credit to FICA Payable until deposited.'},
+{d:'G',q:'PTO accrual — what is it?',a:'Liability for unused paid time off earned but not yet taken by employees. Debit Wages Expense, Credit Accrued Vacation Payable.'},
+{d:'G',q:'Direct charge cost allocation?',a:'Hours-based via time tracking. Wages allocated to project codes by hours entered.'},
+{d:'G',q:'Burdened rate — what is it?',a:'Total cost (wages + payroll taxes + benefits) divided by hours worked. Used for project pricing.'},
+{d:'G',q:'Standard hourly rate vs burdened rate?',a:'Standard is base wages only. Burdened includes employer\u0027s payroll tax and benefit costs.'},
+{d:'G',q:'Pre-tax medical $500 — affects which liability accounts?',a:'Health Insurance Payable (credit when deduction taken from gross).'},
+{d:'G',q:'Garnishment $200 deducted — entry?',a:'Reduces net pay; credit Garnishment Payable until remitted to court/agency.'},
+{d:'G',q:'401(k) deferral $400 — entry?',a:'Reduces net pay; credit 401(k) Payable until remitted to plan.'},
+{d:'G',q:'Why credit Wages Payable instead of Cash directly?',a:'Net pay isn\u0027t paid simultaneously with the journal entry. Use Wages Payable as a clearing account.'},
+{d:'G',q:'Workers comp insurance — accounting treatment?',a:'Premium is an expense, typically prepaid and amortized. Workers Comp Insurance Expense.'},
+{d:'G',q:'Period-end accrual when workweek crosses month-end — why needed?',a:'To recognize wages in the period they were earned. GAAP matching principle.'},
+{d:'G',q:'Workweek June 24-30, paid July 5 — accrual?',a:'June 30 accrual for the wages earned in June. Reverse July 1. Actual payroll posts July 5.'},
+{d:'G',q:'Bonus accrual — example?',a:'Year-end bonus accrued throughout the year as earned, not just when paid. Reduces single-period impact.'},
+{d:'G',q:'Why are reconciliations a "detective" control?',a:'They catch errors after they\u0027ve occurred, by comparing two or more sources of the same information.'},
+{d:'G',q:'$10,000 wages with $765 employer FICA — total cost?',a:'Approximately $10,765 (wages plus employer FICA), plus FUTA and SUTA on top.'},
+{d:'G',q:'Burdened rate vs base hourly rate — typical multiplier?',a:'Often 1.25× to 1.40× depending on benefit richness. Reflects total cost to employer.'},
+{d:'G',q:'GL impact of issuing W-2s?',a:'None — W-2 is informational. Underlying wages, taxes, and benefits were posted at payroll time.'},
+{d:'G',q:'GL impact of filing 941?',a:'None directly. The 941 reports what was already in the GL through quarterly payrolls and tax deposits.'},
+{d:'G',q:'Accrued vs Wages Payable — difference?',a:'Wages Payable is for net wages computed but not yet paid (clearing). Accrued Wages is for wages earned but not yet computed (period-end estimate).'},
+{d:'G',q:'Stale check write-off — entry?',a:'Debit Wages Payable (remove the liability). Credit Cash (or move to escheatment liability).'},
+{d:'G',q:'Escheatment — accounting impact?',a:'Transfer liability from Wages Payable to a separate Unclaimed Property Payable, then to Cash upon remittance to state.'},
+{d:'G',q:'Payroll register vs general ledger?',a:'Register is the detailed transaction record by employee/period. GL is the summarized financial impact rolled up by account.'},
+{d:'G',q:'Three big reconciliations?',a:'Monthly bank, quarterly 941 to GL, annual W-2 to four 941s (CAWR check).'},
+{d:'G',q:'Period-end accrual — what gets reversed and what stays?',a:'The estimate is reversed. The actual payroll then posts. Difference (if any) is the true-up for accuracy.'},
+{d:'G',q:'Why does the employer match for 401(k) NOT post like wages?',a:'It\u0027s a benefits expense (not wages) and not subject to FICA/FUTA. Goes to Benefits Expense and 401(k) Payable.'}
+];
+
+// State
+const state={
+  domain:'all',
+  cards:[],
+  idx:0,
+  flipped:false,
+  marks:{},
+  // marks[idx] = 'known' | 'learning' | undefined
+};
+
+function $(id){return document.getElementById(id);}
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function buildDeck(){
+  const filtered=state.domain==='all'?CARDS.slice():CARDS.filter(c=>c.d===state.domain);
+  state.cards=shuffle(filtered);
+  state.idx=0;
+  state.flipped=false;
+  state.marks={};
+}
+
+function renderFilters(){
+  const counts={all:CARDS.length};
+  DOMAINS.forEach(d=>{counts[d.id]=CARDS.filter(c=>c.d===d.id).length;});
+  let html='<button class="pill'+(state.domain==='all'?' active':'')+'" data-d="all">All<span class="count">'+counts.all+'</span></button>';
+  DOMAINS.forEach(d=>{
+    html+='<button class="pill'+(state.domain===d.id?' active':'')+'" data-d="'+d.id+'">'+d.id+'<span class="count">'+counts[d.id]+'</span></button>';
+  });
+  $('filters').innerHTML=html;
+  document.querySelectorAll('#filters [data-d]').forEach(b=>{
+    b.onclick=()=>{
+      state.domain=b.dataset.d;
+      buildDeck();
+      render();
+    };
+  });
+}
+
+function renderShuffleBar(){
+  const total=state.cards.length;
+  const known=Object.values(state.marks).filter(m=>m==='known').length;
+  const learning=Object.values(state.marks).filter(m=>m==='learning').length;
+  const domainName=state.domain==='all'?'all domains':'Domain '+state.domain;
+  $('shuffle-bar').innerHTML='<div class="shuffle-row"><div><strong style="color:var(--color-text-primary);">'+total+' cards</strong> <span style="color:var(--color-text-secondary);">from '+domainName+'</span><div class="stats" style="margin-top:4px;"><span><strong>'+known+'</strong>known</span><span><strong>'+learning+'</strong>learning</span></div></div><button class="shuffle-btn" id="reshuffle">Shuffle</button></div>';
+  $('reshuffle').onclick=()=>{
+    buildDeck();
+    render();
+  };
+}
+
+function renderCard(){
+  if(!state.cards.length){
+    $('card-area').innerHTML='<p style="text-align:center;color:var(--color-text-secondary);padding:40px;">No cards.</p>';
+    return;
+  }
+  if(state.idx>=state.cards.length){state.idx=0;}
+  const card=state.cards[state.idx];
+  const total=state.cards.length;
+  const cur=state.idx+1;
+  const pctProgress=(cur/total)*100;
+  const mark=state.marks[state.idx];
+  let html='<div class="progress-row"><span>Card '+cur+' of '+total+'</span><div class="pbar"><div class="pfill" style="width:'+pctProgress+'%"></div></div><span>'+Math.round(pctProgress)+'%</span></div>';
+  html+='<div class="card" id="flash"><div class="domain-badge">Domain '+card.d+'</div>';
+  if(state.flipped){
+    html+='<div class="a">'+card.a+'</div>';
+    html+='<div class="hint">Tap to see question</div>';
+  }else{
+    html+='<div class="q">'+card.q+'</div>';
+    html+='<div class="hint">Tap to reveal answer</div>';
+  }
+  html+='</div>';
+  html+='<div class="controls">';
+  html+='<button class="ctrl learn" id="c-learn">'+(mark==='learning'?'✓ ':'')+'Still learning</button>';
+  html+='<button class="ctrl" id="c-skip">Skip</button>';
+  html+='<button class="ctrl know" id="c-know">'+(mark==='known'?'✓ ':'')+'Got it</button>';
+  html+='</div>';
+  html+='<div class="nav-row"><button class="nav-btn" id="c-prev"'+(state.idx===0?' disabled':'')+'>← Previous</button><button class="nav-btn" id="c-next"'+(state.idx>=state.cards.length-1?' disabled':'')+'>Next →</button></div>';
+  $('card-area').innerHTML=html;
+  $('flash').onclick=()=>{state.flipped=!state.flipped;renderCard();};
+  $('c-learn').onclick=(e)=>{e.stopPropagation();state.marks[state.idx]='learning';advance();};
+  $('c-skip').onclick=(e)=>{e.stopPropagation();advance();};
+  $('c-know').onclick=(e)=>{e.stopPropagation();state.marks[state.idx]='known';advance();};
+  $('c-prev').onclick=()=>{if(state.idx>0){state.idx--;state.flipped=false;render();}};
+  $('c-next').onclick=()=>{if(state.idx<state.cards.length-1){state.idx++;state.flipped=false;render();}};
+}
+
+function advance(){
+  state.flipped=false;
+  if(state.idx<state.cards.length-1){
+    state.idx++;
+  }else{
+    state.idx=0;
+  }
+  render();
+}
+
+function render(){
+  renderShuffleBar();
+  renderCard();
+}
+
+buildDeck();
+renderFilters();
+render();
+</script>
