@@ -467,6 +467,178 @@
     .brand{justify-content:center;}
   }
 
+
+  /* Accessibility heading: keep it available to screen readers but hide it visually */
+  .sr-only{
+    position:absolute !important;
+    width:1px !important;
+    height:1px !important;
+    padding:0 !important;
+    margin:-1px !important;
+    overflow:hidden !important;
+    clip:rect(0,0,0,0) !important;
+    white-space:nowrap !important;
+    border:0 !important;
+  }
+
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin:0 0 1rem;
+  }
+  .dash-card{
+    background:var(--color-background-secondary);
+    border:1px solid var(--color-border-tertiary);
+    border-radius:18px;
+    padding:14px;
+    color:var(--color-text-primary);
+    box-shadow:0 14px 34px rgba(0,0,0,.10);
+  }
+  .dash-card .dash-num{
+    display:block;
+    font-size:24px;
+    font-weight:900;
+    letter-spacing:-.04em;
+    color:var(--color-text-primary);
+  }
+  .dash-card .dash-label{
+    display:block;
+    margin-top:3px;
+    font-size:11px;
+    color:var(--color-text-secondary);
+    text-transform:uppercase;
+    letter-spacing:.07em;
+  }
+  .mode-row{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:0 0 1rem;
+  }
+  .mode-btn{
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid var(--color-border-tertiary);
+    background:var(--color-background-secondary);
+    color:var(--color-text-primary);
+    cursor:pointer;
+    font-size:13px;
+    font-weight:800;
+    transition:.2s ease;
+  }
+  .mode-btn:hover{transform:translateY(-2px);border-color:var(--color-border-secondary);}
+  .mode-btn.active{
+    color:#fff !important;
+    background:linear-gradient(135deg,#ff5fa2,#9b5cff);
+    border-color:rgba(255,255,255,.35);
+    box-shadow:0 12px 28px rgba(155,92,255,.24);
+  }
+  .shortcut-note{
+    margin:0 0 1rem;
+    padding:10px 14px;
+    border-radius:16px;
+    border:1px solid var(--color-border-tertiary);
+    background:var(--color-background-secondary);
+    color:var(--color-text-secondary);
+    font-size:12px;
+    line-height:1.45;
+  }
+  .flip-scene{
+    perspective:1200px;
+  }
+  .card{
+    transform-style:preserve-3d;
+  }
+  .card.flipping{
+    animation:cardPop .24s ease;
+  }
+  @keyframes cardPop{
+    0%{transform:scale(.985) rotateY(0deg);}
+    55%{transform:scale(1.015) rotateY(5deg);}
+    100%{transform:scale(1) rotateY(0deg);}
+  }
+  .card .q,.card .a{
+    animation:fadeInCard .2s ease;
+  }
+  @keyframes fadeInCard{
+    from{opacity:0;transform:translateY(8px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+  .card-mark{
+    position:absolute;
+    top:16px;
+    right:18px;
+    z-index:2;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    padding:7px 10px;
+    border-radius:999px;
+    border:1px solid var(--color-border-tertiary);
+    background:var(--color-background-secondary);
+    color:var(--color-text-secondary);
+  }
+  .card-mark.known{
+    border-color:var(--color-border-success);
+    color:var(--color-text-success);
+    background:var(--color-background-success);
+  }
+  .card-mark.learning{
+    border-color:var(--color-border-danger);
+    color:var(--color-text-danger);
+    background:var(--color-background-danger);
+  }
+  .completion-box{
+    text-align:center;
+    padding:30px 18px;
+    border-radius:24px;
+    background:var(--color-background-secondary);
+    border:1px solid var(--color-border-tertiary);
+    color:var(--color-text-primary);
+  }
+  .completion-box h3{
+    margin:0 0 8px;
+    font-size:28px;
+    letter-spacing:-.04em;
+  }
+  .completion-box p{
+    margin:0 0 16px;
+    color:var(--color-text-secondary);
+  }
+  .completion-box .shuffle-btn{
+    margin:4px;
+  }
+  body.dark-mode .dash-card,
+  body.dark-mode .dash-card *,
+  body.dark-mode .mode-btn,
+  body.dark-mode .shortcut-note,
+  body.dark-mode .completion-box,
+  body.dark-mode .completion-box *,
+  body.dark-mode .card-mark{
+    color:#ffffff !important;
+  }
+  body:not(.dark-mode) .dash-card,
+  body:not(.dark-mode) .dash-card *,
+  body:not(.dark-mode) .mode-btn,
+  body:not(.dark-mode) .shortcut-note,
+  body:not(.dark-mode) .completion-box,
+  body:not(.dark-mode) .completion-box *,
+  body:not(.dark-mode) .card-mark{
+    color:#101828 !important;
+  }
+  body.dark-mode .hero p,
+  body:not(.dark-mode) .hero p,
+  body.dark-mode .eyebrow,
+  body:not(.dark-mode) .eyebrow{
+    color:#ffffff !important;
+    text-shadow:0 2px 12px rgba(0,0,0,.25);
+  }
+  @media(max-width:760px){
+    .dashboard-grid{grid-template-columns:1fr 1fr;}
+  }
+
 </style>
 
 <div class="app-shell">
@@ -492,6 +664,9 @@
   </section>
 
   <section class="study-panel">
+    <div id="mastery-dashboard"></div>
+    <div id="study-mode-row"></div>
+    <div class="shortcut-note">Keyboard shortcuts: <strong>Space</strong> flip · <strong>←</strong> previous · <strong>→</strong> next · <strong>K</strong> got it · <strong>L</strong> still learning</div>
     <div id="filters" class="pill-row"></div>
     <div id="shuffle-bar"></div>
     <div id="card-area"></div>
@@ -500,6 +675,8 @@
 
 <script>
 const THEME_KEY='cppStudyTheme';
+const FLASHCARD_PROGRESS_KEY='cppFlashcardProgressV3';
+const FLASHCARD_SESSION_KEY='cppFlashcardSessionV3';
 function applyTheme(){
   const saved=localStorage.getItem(THEME_KEY);
   const prefersDark=window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -942,12 +1119,66 @@ const CARDS=[
 // State
 const state={
   domain:'all',
+  mode:'all',
   cards:[],
   idx:0,
   flipped:false,
   marks:{},
-  // marks[idx] = 'known' | 'learning' | undefined
+  // marks[id] = 'known' | 'learning' | undefined
 };
+
+
+function cardId(card){
+  return card.d+'|'+card.q;
+}
+function safeParse(json,fallback){
+  try{return JSON.parse(json)||fallback;}catch(e){return fallback;}
+}
+function loadProgress(){
+  state.marks=safeParse(localStorage.getItem(FLASHCARD_PROGRESS_KEY),{});
+  const session=safeParse(localStorage.getItem(FLASHCARD_SESSION_KEY),null);
+  if(session){
+    state.domain=session.domain||'all';
+    state.mode=session.mode||'all';
+    state.idx=session.idx||0;
+  }
+}
+function saveProgress(){
+  localStorage.setItem(FLASHCARD_PROGRESS_KEY,JSON.stringify(state.marks));
+  localStorage.setItem(FLASHCARD_SESSION_KEY,JSON.stringify({domain:state.domain,mode:state.mode,idx:state.idx}));
+}
+function resetProgress(){
+  if(confirm('Clear all flashcard progress? This will remove known/still learning marks.')){
+    state.marks={};
+    localStorage.removeItem(FLASHCARD_PROGRESS_KEY);
+    localStorage.removeItem(FLASHCARD_SESSION_KEY);
+    buildDeck(false);
+    renderFilters();
+    render();
+  }
+}
+function deckSource(){
+  let filtered=state.domain==='all'?CARDS.slice():CARDS.filter(c=>c.d===state.domain);
+  if(state.mode==='missed'){
+    filtered=filtered.filter(c=>state.marks[cardId(c)]==='learning');
+  }
+  if(state.mode==='unmarked'){
+    filtered=filtered.filter(c=>!state.marks[cardId(c)]);
+  }
+  return filtered;
+}
+function masteryStats(){
+  const total=CARDS.length;
+  let known=0, learning=0;
+  CARDS.forEach(c=>{
+    const mark=state.marks[cardId(c)];
+    if(mark==='known')known++;
+    if(mark==='learning')learning++;
+  });
+  const remaining=total-known-learning;
+  const pct=total?Math.round((known/total)*100):0;
+  return {total,known,learning,remaining,pct};
+}
 
 function $(id){return document.getElementById(id);}
 
@@ -960,12 +1191,12 @@ function shuffle(arr){
   return a;
 }
 
-function buildDeck(){
-  const filtered=state.domain==='all'?CARDS.slice():CARDS.filter(c=>c.d===state.domain);
-  state.cards=shuffle(filtered);
-  state.idx=0;
+function buildDeck(reshuffle=true){
+  const filtered=deckSource();
+  state.cards=reshuffle?shuffle(filtered):filtered.slice();
+  if(state.idx>=state.cards.length)state.idx=0;
   state.flipped=false;
-  state.marks={};
+  saveProgress();
 }
 
 function renderFilters(){
@@ -979,19 +1210,57 @@ function renderFilters(){
   document.querySelectorAll('#filters [data-d]').forEach(b=>{
     b.onclick=()=>{
       state.domain=b.dataset.d;
+      state.idx=0;
       buildDeck();
       render();
     };
   });
 }
 
+
+function renderDashboard(){
+  const s=masteryStats();
+  $('mastery-dashboard').innerHTML=
+    '<div class="dashboard-grid">'+
+      '<div class="dash-card"><span class="dash-num">'+s.pct+'%</span><span class="dash-label">Mastery</span></div>'+
+      '<div class="dash-card"><span class="dash-num">'+s.known+'</span><span class="dash-label">Known</span></div>'+
+      '<div class="dash-card"><span class="dash-num">'+s.learning+'</span><span class="dash-label">Still learning</span></div>'+
+      '<div class="dash-card"><span class="dash-num">'+s.remaining+'</span><span class="dash-label">Unmarked</span></div>'+
+    '</div>';
+}
+function renderStudyModes(){
+  $('study-mode-row').innerHTML=
+    '<div class="mode-row">'+
+      '<button class="mode-btn '+(state.mode==='all'?'active':'')+'" data-mode="all">All Cards</button>'+
+      '<button class="mode-btn '+(state.mode==='missed'?'active':'')+'" data-mode="missed">Study Still Learning</button>'+
+      '<button class="mode-btn '+(state.mode==='unmarked'?'active':'')+'" data-mode="unmarked">Unmarked Only</button>'+
+      '<button class="mode-btn" id="reset-progress" type="button">Reset Progress</button>'+
+    '</div>';
+  document.querySelectorAll('[data-mode]').forEach(b=>{
+    b.onclick=()=>{
+      state.mode=b.dataset.mode;
+      state.idx=0;
+      buildDeck();
+      render();
+    };
+  });
+  const reset=$('reset-progress');
+  if(reset)reset.onclick=resetProgress;
+}
+
 function renderShuffleBar(){
   const total=state.cards.length;
-  const known=Object.values(state.marks).filter(m=>m==='known').length;
-  const learning=Object.values(state.marks).filter(m=>m==='learning').length;
+  let known=0, learning=0;
+  state.cards.forEach(card=>{
+    const mark=state.marks[cardId(card)];
+    if(mark==='known')known++;
+    if(mark==='learning')learning++;
+  });
   const domainName=state.domain==='all'?'all domains':'Domain '+state.domain;
-  $('shuffle-bar').innerHTML='<div class="shuffle-row"><div><strong style="color:var(--color-text-primary);">'+total+' cards</strong> <span style="color:var(--color-text-secondary);">from '+domainName+'</span><div class="stats" style="margin-top:4px;"><span><strong>'+known+'</strong>known</span><span><strong>'+learning+'</strong>learning</span></div></div><button class="shuffle-btn" id="reshuffle">Shuffle</button></div>';
+  const modeName=state.mode==='missed'?' · still learning only':(state.mode==='unmarked'?' · unmarked only':'');
+  $('shuffle-bar').innerHTML='<div class="shuffle-row"><div><strong style="color:var(--color-text-primary);">'+total+' cards</strong> <span style="color:var(--color-text-secondary);">from '+domainName+modeName+'</span><div class="stats" style="margin-top:4px;"><span><strong>'+known+'</strong>known in deck</span><span><strong>'+learning+'</strong>learning in deck</span></div></div><button class="shuffle-btn" id="reshuffle">Shuffle</button></div>';
   $('reshuffle').onclick=()=>{
+    state.idx=0;
     buildDeck();
     render();
   };
@@ -999,7 +1268,12 @@ function renderShuffleBar(){
 
 function renderCard(){
   if(!state.cards.length){
-    $('card-area').innerHTML='<p style="text-align:center;color:var(--color-text-secondary);padding:40px;">No cards.</p>';
+    const message=state.mode==='missed'
+      ? 'No still-learning cards yet. Mark a few cards as “Still learning” and they will appear here.'
+      : (state.mode==='unmarked'?'No unmarked cards left in this view.':'No cards.');
+    $('card-area').innerHTML='<div class="completion-box"><h3>Nice work!</h3><p>'+message+'</p><button class="shuffle-btn" id="show-all">Show All Cards</button></div>';
+    const showAll=$('show-all');
+    if(showAll)showAll.onclick=()=>{state.mode='all';state.idx=0;buildDeck();render();};
     return;
   }
   if(state.idx>=state.cards.length){state.idx=0;}
@@ -1007,17 +1281,19 @@ function renderCard(){
   const total=state.cards.length;
   const cur=state.idx+1;
   const pctProgress=(cur/total)*100;
-  const mark=state.marks[state.idx];
+  const id=cardId(card);
+  const mark=state.marks[id];
+  const markLabel=mark==='known'?'Known':(mark==='learning'?'Still learning':'Unmarked');
   let html='<div class="progress-row"><span>Card '+cur+' of '+total+'</span><div class="pbar"><div class="pfill" style="width:'+pctProgress+'%"></div></div><span>'+Math.round(pctProgress)+'%</span></div>';
-  html+='<div class="card" id="flash"><div class="domain-badge">Domain '+card.d+'</div>';
+  html+='<div class="flip-scene"><div class="card flipping" id="flash"><div class="domain-badge">Domain '+card.d+'</div><div class="card-mark '+(mark||'')+'">'+markLabel+'</div>';
   if(state.flipped){
     html+='<div class="a">'+card.a+'</div>';
-    html+='<div class="hint">Tap to see question</div>';
+    html+='<div class="hint">Tap or press Space to see question</div>';
   }else{
     html+='<div class="q">'+card.q+'</div>';
-    html+='<div class="hint">Tap to reveal answer</div>';
+    html+='<div class="hint">Tap or press Space to reveal answer</div>';
   }
-  html+='</div>';
+  html+='</div></div>';
   html+='<div class="controls">';
   html+='<button class="ctrl learn" id="c-learn">'+(mark==='learning'?'✓ ':'')+'Still learning</button>';
   html+='<button class="ctrl" id="c-skip">Skip</button>';
@@ -1025,30 +1301,87 @@ function renderCard(){
   html+='</div>';
   html+='<div class="nav-row"><button class="nav-btn" id="c-prev"'+(state.idx===0?' disabled':'')+'>← Previous</button><button class="nav-btn" id="c-next"'+(state.idx>=state.cards.length-1?' disabled':'')+'>Next →</button></div>';
   $('card-area').innerHTML=html;
-  $('flash').onclick=()=>{state.flipped=!state.flipped;renderCard();};
-  $('c-learn').onclick=(e)=>{e.stopPropagation();state.marks[state.idx]='learning';advance();};
+  $('flash').onclick=()=>{state.flipped=!state.flipped;saveProgress();renderCard();};
+  $('c-learn').onclick=(e)=>{e.stopPropagation();state.marks[id]='learning';saveProgress();advance();};
   $('c-skip').onclick=(e)=>{e.stopPropagation();advance();};
-  $('c-know').onclick=(e)=>{e.stopPropagation();state.marks[state.idx]='known';advance();};
-  $('c-prev').onclick=()=>{if(state.idx>0){state.idx--;state.flipped=false;render();}};
-  $('c-next').onclick=()=>{if(state.idx<state.cards.length-1){state.idx++;state.flipped=false;render();}};
+  $('c-know').onclick=(e)=>{e.stopPropagation();state.marks[id]='known';saveProgress();advance();};
+  $('c-prev').onclick=()=>{if(state.idx>0){state.idx--;state.flipped=false;saveProgress();render();}};
+  $('c-next').onclick=()=>{if(state.idx<state.cards.length-1){state.idx++;state.flipped=false;saveProgress();render();}};
 }
 
 function advance(){
   state.flipped=false;
-  if(state.idx<state.cards.length-1){
-    state.idx++;
+  if(state.mode==='missed' || state.mode==='unmarked'){
+    const currentGlobalId=state.cards[state.idx]?cardId(state.cards[state.idx]):null;
+    const refreshed=deckSource();
+    state.cards=refreshed;
+    const stillHere=currentGlobalId?state.cards.findIndex(c=>cardId(c)===currentGlobalId):-1;
+    if(stillHere>=0 && state.idx<state.cards.length-1){
+      state.idx=state.idx+1;
+    }else if(state.idx>=state.cards.length){
+      state.idx=0;
+    }
   }else{
-    state.idx=0;
+    if(state.idx<state.cards.length-1){
+      state.idx++;
+    }else{
+      state.idx=0;
+    }
   }
+  saveProgress();
   render();
 }
 
 function render(){
+  renderDashboard();
+  renderStudyModes();
   renderShuffleBar();
   renderCard();
 }
 
+loadProgress();
 buildDeck();
 renderFilters();
 render();
+
+document.addEventListener('keydown',function(e){
+  const tag=(document.activeElement && document.activeElement.tagName || '').toLowerCase();
+  if(tag==='input' || tag==='textarea' || tag==='button')return;
+  if(e.code==='Space'){
+    e.preventDefault();
+    state.flipped=!state.flipped;
+    saveProgress();
+    renderCard();
+  }else if(e.key==='ArrowLeft'){
+    if(state.idx>0){
+      state.idx--;
+      state.flipped=false;
+      saveProgress();
+      render();
+    }
+  }else if(e.key==='ArrowRight'){
+    if(state.idx<state.cards.length-1){
+      state.idx++;
+    }else{
+      state.idx=0;
+    }
+    state.flipped=false;
+    saveProgress();
+    render();
+  }else if(e.key.toLowerCase()==='k'){
+    const card=state.cards[state.idx];
+    if(card){
+      state.marks[cardId(card)]='known';
+      saveProgress();
+      advance();
+    }
+  }else if(e.key.toLowerCase()==='l'){
+    const card=state.cards[state.idx];
+    if(card){
+      state.marks[cardId(card)]='learning';
+      saveProgress();
+      advance();
+    }
+  }
+});
 </script>
