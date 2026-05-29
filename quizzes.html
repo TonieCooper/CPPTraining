@@ -1,6 +1,23 @@
 <h2 class="sr-only">CPP exam quiz suite — domain quizzes, combined quiz, and 190-question mock exams.</h2>
 
 <style>
+  :root{
+    --color-background-primary:#ffffff;--color-background-secondary:#f6f7f9;--color-background-info:#eef6ff;--color-background-success:#ecfdf3;--color-background-danger:#fff1f2;
+    --color-border-tertiary:#d9dde5;--color-border-secondary:#9aa4b2;--color-border-success:#22c55e;--color-border-danger:#ef4444;
+    --color-text-primary:#111827;--color-text-secondary:#667085;--color-text-tertiary:#98a2b3;--color-text-info:#2563eb;--color-text-success:#15803d;--color-text-danger:#dc2626;
+    --border-radius-md:10px;--border-radius-lg:16px;
+  }
+  body.dark-mode{
+    --color-background-primary:#0f172a;--color-background-secondary:#1e293b;--color-background-info:#172554;--color-background-success:#052e16;--color-background-danger:#450a0a;
+    --color-border-tertiary:#334155;--color-border-secondary:#64748b;--color-border-success:#16a34a;--color-border-danger:#dc2626;
+    --color-text-primary:#f8fafc;--color-text-secondary:#cbd5e1;--color-text-tertiary:#94a3b8;--color-text-info:#60a5fa;--color-text-success:#4ade80;--color-text-danger:#f87171;
+  }
+  body{background:var(--color-background-primary);color:var(--color-text-primary);transition:background .2s ease,color .2s ease;}
+  .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 1rem;}
+  .mini-btn{padding:8px 10px;font-size:12px;background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-primary);}
+  .notice{padding:12px 14px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin:0 0 1rem;font-size:13px;color:var(--color-text-primary);}
+  .score-history{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin:0 0 1rem;padding:12px 14px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);}
+  .timer-pill{font-size:12px;color:var(--color-text-primary);padding:6px 9px;border-radius:999px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);white-space:nowrap;}
   .card-btn{padding:16px;text-align:left;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;width:100%;}
   .card-btn:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary);}
   .card-btn .top{font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
@@ -14,9 +31,11 @@
   .qbody{padding:18px 0;}
   .qtxt{font-size:16px;line-height:1.55;margin:0 0 1rem;color:var(--color-text-primary);}
   .qopts{display:flex;flex-direction:column;gap:8px;}
-  .qopt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;text-align:left;font-size:14px;line-height:1.45;}
+  .qopt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;text-align:left;font-size:14px;line-height:1.45;color:var(--color-text-primary);}
+  .qopt span{color:var(--color-text-primary);}
+  .card-btn{color:var(--color-text-primary);}
   .qopt:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary);}
-  .qopt.sel{box-shadow:inset 4px 0 0 0 var(--color-text-info);background:var(--color-background-info);border-color:var(--color-text-info);font-weight:500;}
+  .qopt.sel{box-shadow:inset 6px 0 0 0 var(--color-text-info),0 0 0 2px var(--color-text-info);background:var(--color-background-info);border-color:var(--color-text-info);font-weight:600;}
   .qopt.sel .letter{background:var(--color-text-info);color:var(--color-background-primary);}
   .qopt .letter{width:24px;height:24px;border-radius:50%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;color:var(--color-text-secondary);}
   .qopt.correct{border-color:var(--color-border-success);background:var(--color-background-success);}
@@ -325,14 +344,64 @@ const Q=[
 ];
 
 // State
+const STORAGE_KEYS={
+  progress:'cppQuizProgressV2',
+  scores:'cppQuizScoreHistoryV2',
+  dark:'cppQuizDarkModeV2'
+};
+const MOCK_LIMIT_SECONDS=4*60*60;
+let timerInterval=null;
+
 const state={
   mode:'home',
   quiz:null,
   selections:[],
   idx:0,
   submitted:false,
-  reviewFilter:'all'
+  reviewFilter:'all',
+  startedAt:null,
+  timeLimitSeconds:null,
+  scoreRecorded:false
 };
+
+function safeParse(json,fallback){try{return JSON.parse(json)||fallback;}catch(e){return fallback;}}
+function getSavedProgress(){return safeParse(localStorage.getItem(STORAGE_KEYS.progress),null);}
+function saveProgress(){
+  if(state.mode!=='quiz'||!state.quiz)return;
+  localStorage.setItem(STORAGE_KEYS.progress,JSON.stringify({
+    quiz:state.quiz,selections:state.selections,idx:state.idx,startedAt:state.startedAt,timeLimitSeconds:state.timeLimitSeconds
+  }));
+}
+function clearProgress(){localStorage.removeItem(STORAGE_KEYS.progress);}
+function getScoreHistory(){return safeParse(localStorage.getItem(STORAGE_KEYS.scores),[]);}
+function saveScoreRecord(){
+  if(!state.quiz||state.scoreRecorded)return;
+  const total=state.quiz.questions.length;
+  let correct=0;
+  state.quiz.questions.forEach((q,i)=>{if(state.selections[i]===q.c)correct++;});
+  const label=state.quiz.type==='domain'?'Domain '+state.quiz.domain:(state.quiz.type==='combined'?'Combined quiz':'Mock exam v'+state.quiz.version);
+  const history=getScoreHistory();
+  history.unshift({date:new Date().toLocaleString(),label,correct,total,pct:Math.round((correct/total)*100)});
+  localStorage.setItem(STORAGE_KEYS.scores,JSON.stringify(history.slice(0,25)));
+  state.scoreRecorded=true;
+}
+function applyDarkMode(){document.body.classList.toggle('dark-mode',localStorage.getItem(STORAGE_KEYS.dark)==='1');}
+function toggleDarkMode(){localStorage.setItem(STORAGE_KEYS.dark,document.body.classList.contains('dark-mode')?'0':'1');applyDarkMode();}
+function formatTime(sec){sec=Math.max(0,Math.floor(sec));const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+function remainingSeconds(){if(!state.timeLimitSeconds||!state.startedAt)return null;return state.timeLimitSeconds-Math.floor((Date.now()-state.startedAt)/1000);}
+function updateTimerDisplay(){
+  const el=document.getElementById('timer-pill');
+  const rem=remainingSeconds();
+  if(el&&rem!==null)el.textContent='Time left: '+formatTime(rem);
+  if(state.mode==='quiz'&&state.quiz&&state.quiz.type==='mock'&&rem!==null&&rem<=0){submitQuiz(true);}
+}
+function startTimer(){
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(updateTimerDisplay,1000);
+  updateTimerDisplay();
+}
+function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
+applyDarkMode();
 
 function $(id){return document.getElementById(id);}
 
@@ -399,20 +468,41 @@ function startQuiz(type,arg){
     state.quiz={type:'mock',version:arg,questions:buildMockExam(arg)};
   }
   state.selections=new Array(state.quiz.questions.length).fill(null);
+  state.startedAt=Date.now();
+  state.timeLimitSeconds=type==='mock'?MOCK_LIMIT_SECONDS:null;
+  state.scoreRecorded=false;
+  saveProgress();
+  startTimer();
   render();
   window.scrollTo(0,0);
 }
 
-function submitQuiz(){
+function submitQuiz(autoExpired){
   state.submitted=true;
   state.mode='results';
   state.reviewFilter='all';
+  clearProgress();
+  stopTimer();
+  saveScoreRecord();
   render();
+  if(autoExpired)alert('Time is up. Your mock exam has been submitted.');
   window.scrollTo(0,0);
 }
 
 function renderHome(){
-  let html='<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.25rem;">';
+  stopTimer();
+  const saved=getSavedProgress();
+  const history=getScoreHistory();
+  let html='<div class="top-actions"><button class="mini-btn" id="toggle-dark">Toggle dark mode</button>'+(history.length?'<button class="mini-btn" id="clear-scores">Clear score history</button>':'')+'</div>';
+  if(saved){
+    const label=saved.quiz.type==='domain'?'Domain '+saved.quiz.domain:(saved.quiz.type==='combined'?'Combined quiz':'Mock exam v'+saved.quiz.version);
+    const answered=saved.selections.filter(x=>x!==null).length;
+    html+='<div class="notice"><strong>Saved progress found:</strong> '+label+' · '+answered+'/'+saved.quiz.questions.length+' answered <div style="margin-top:8px;display:flex;gap:8px;"><button class="primary-btn" id="resume-quiz">Resume</button><button class="nav-btn" id="discard-progress">Discard</button></div></div>';
+  }
+  if(history.length){
+    html+='<div class="score-history"><strong>Recent scores</strong><br>'+history.slice(0,5).map(r=>r.date+' — '+r.label+': '+r.correct+'/'+r.total+' ('+r.pct+'%)').join('<br>')+'</div>';
+  }
+  html+='<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.25rem;">';
   DOMAINS.forEach(d=>{
     const count=Q.filter(q=>q.d===d.id).length;
     const quizSize=Math.min(count,30);
@@ -443,6 +533,15 @@ function renderHome(){
   });
   html+='</div>';
   $('content').innerHTML=html;
+  if($('toggle-dark'))$('toggle-dark').onclick=()=>{toggleDarkMode();renderHome();};
+  if($('clear-scores'))$('clear-scores').onclick=()=>{localStorage.removeItem(STORAGE_KEYS.scores);renderHome();};
+  if($('discard-progress'))$('discard-progress').onclick=()=>{clearProgress();renderHome();};
+  if($('resume-quiz'))$('resume-quiz').onclick=()=>{
+    const saved=getSavedProgress();
+    if(!saved)return;
+    state.mode='quiz';state.quiz=saved.quiz;state.selections=saved.selections;state.idx=saved.idx||0;state.startedAt=saved.startedAt;state.timeLimitSeconds=saved.timeLimitSeconds;state.scoreRecorded=false;
+    startTimer();render();window.scrollTo(0,0);
+  };
   document.querySelectorAll('[data-act]').forEach(b=>{
     b.onclick=()=>{
       const act=b.dataset.act;
@@ -467,7 +566,7 @@ function renderQuiz(){
     header='Mock exam version '+state.quiz.version;
   }
   let html='<button class="nav-btn" id="back-home" style="margin-bottom:1rem;">&larr; Quiz menu</button>';
-  html+='<div class="qbar"><div><div style="font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;">'+header+'</div><div style="font-weight:500;margin-top:2px;">Question '+(state.idx+1)+' of '+total+'</div><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div></div><div class="qbar-stat"><strong>'+answered+'</strong>/'+total+' answered</div></div>';
+  html+='<div class="qbar"><div><div style="font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;">'+header+'</div><div style="font-weight:500;margin-top:2px;">Question '+(state.idx+1)+' of '+total+'</div><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'+(state.quiz.type==='mock'?'<div class="timer-pill" id="timer-pill">Time left: '+formatTime(remainingSeconds())+'</div>':'')+'<div class="qbar-stat"><strong>'+answered+'</strong>/'+total+' answered</div></div></div>';
   html+='<div class="qbody"><p class="qtxt">'+q.q+'</p><div class="qopts">';
   q.o.forEach((opt,i)=>{
     const isSel=state.selections[state.idx]===i;
@@ -491,6 +590,8 @@ function renderQuiz(){
     if(answered>0){
       if(!confirm('You\u0027ve answered '+answered+' question(s). Quitting will lose your progress. Continue?'))return;
     }
+    clearProgress();
+    stopTimer();
     state.mode='home';
     render();
     window.scrollTo(0,0);
@@ -498,12 +599,15 @@ function renderQuiz(){
   document.querySelectorAll('[data-opt]').forEach(b=>{
     b.onclick=()=>{
       state.selections[state.idx]=parseInt(b.dataset.opt);
+      saveProgress();
       renderQuiz();
     };
   });
-  if($('q-prev'))$('q-prev').onclick=()=>{if(state.idx>0){state.idx--;renderQuiz();window.scrollTo(0,0);}};
-  if($('q-next'))$('q-next').onclick=()=>{if(state.idx<total-1){state.idx++;renderQuiz();window.scrollTo(0,0);}};
-  if($('q-submit'))$('q-submit').onclick=submitQuiz;
+  if($('q-prev'))$('q-prev').onclick=()=>{if(state.idx>0){state.idx--;saveProgress();renderQuiz();window.scrollTo(0,0);}};
+  if($('q-next'))$('q-next').onclick=()=>{if(state.idx<total-1){state.idx++;saveProgress();renderQuiz();window.scrollTo(0,0);}};
+  if($('q-submit'))$('q-submit').onclick=()=>submitQuiz(false);
+  saveProgress();
+  updateTimerDisplay();
 }
 
 function renderResults(){
