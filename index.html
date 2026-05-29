@@ -1,705 +1,698 @@
-<h2 class="sr-only">CPP exam quiz suite — domain quizzes, combined quiz, and 190-question mock exams.</h2>
-
-<style>
-  :root{
-    --color-background-primary:#ffffff;--color-background-secondary:#f6f7f9;--color-background-info:#eef6ff;--color-background-success:#ecfdf3;--color-background-danger:#fff1f2;
-    --color-border-tertiary:#d9dde5;--color-border-secondary:#9aa4b2;--color-border-success:#22c55e;--color-border-danger:#ef4444;
-    --color-text-primary:#111827;--color-text-secondary:#667085;--color-text-tertiary:#98a2b3;--color-text-info:#2563eb;--color-text-success:#15803d;--color-text-danger:#dc2626;
-    --border-radius-md:10px;--border-radius-lg:16px;
-  }
-  body.dark-mode{
-    --color-background-primary:#0f172a;--color-background-secondary:#1e293b;--color-background-info:#172554;--color-background-success:#052e16;--color-background-danger:#450a0a;
-    --color-border-tertiary:#334155;--color-border-secondary:#64748b;--color-border-success:#16a34a;--color-border-danger:#dc2626;
-    --color-text-primary:#f8fafc;--color-text-secondary:#cbd5e1;--color-text-tertiary:#94a3b8;--color-text-info:#60a5fa;--color-text-success:#4ade80;--color-text-danger:#f87171;
-  }
-  body{background:var(--color-background-primary);color:var(--color-text-primary);transition:background .2s ease,color .2s ease;}
-  .top-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 1rem;}
-  .mini-btn{padding:8px 10px;font-size:12px;background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-primary);}
-  .notice{padding:12px 14px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin:0 0 1rem;font-size:13px;color:var(--color-text-primary);}
-  .score-history{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin:0 0 1rem;padding:12px 14px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);}
-  .timer-pill{font-size:12px;color:var(--color-text-primary);padding:6px 9px;border-radius:999px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);white-space:nowrap;}
-  .card-btn{padding:16px;text-align:left;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;width:100%;}
-  .card-btn:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary);}
-  .card-btn .top{font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;}
-  .card-btn .mid{font-size:15px;font-weight:500;margin-bottom:2px;color:var(--color-text-primary);}
-  .card-btn .bot{font-size:12px;color:var(--color-text-secondary);}
-  .qbar{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;}
-  .qbar-stat{color:var(--color-text-secondary);font-size:12px;}
-  .qbar-stat strong{color:var(--color-text-primary);font-weight:500;}
-  .pbar{height:4px;background:var(--color-background-primary);border-radius:999px;overflow:hidden;margin-top:8px;}
-  .pfill{height:100%;background:var(--color-text-info);transition:width 0.2s ease;}
-  .qbody{padding:18px 0;}
-  .qtxt{font-size:16px;line-height:1.55;margin:0 0 1rem;color:var(--color-text-primary);}
-  .qopts{display:flex;flex-direction:column;gap:8px;}
-  .qopt{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;text-align:left;font-size:14px;line-height:1.45;color:var(--color-text-primary);}
-  .qopt span{color:var(--color-text-primary);}
-  .card-btn{color:var(--color-text-primary);}
-  .qopt:hover{border-color:var(--color-border-secondary);background:var(--color-background-secondary);}
-  .qopt.sel{box-shadow:inset 6px 0 0 0 var(--color-text-info),0 0 0 2px var(--color-text-info);background:var(--color-background-info);border-color:var(--color-text-info);font-weight:600;}
-  .qopt.sel .letter{background:var(--color-text-info);color:var(--color-background-primary);}
-  .qopt .letter{width:24px;height:24px;border-radius:50%;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex-shrink:0;color:var(--color-text-secondary);}
-  .qopt.correct{border-color:var(--color-border-success);background:var(--color-background-success);}
-  .qopt.correct .letter{background:var(--color-text-success);color:var(--color-background-primary);}
-  .qopt.wrong{border-color:var(--color-border-danger);background:var(--color-background-danger);}
-  .qopt.wrong .letter{background:var(--color-text-danger);color:var(--color-background-primary);}
-  .ctrl-row{display:flex;justify-content:space-between;gap:8px;margin-top:1.5rem;}
-  .nav-btn{padding:10px 16px;font-size:14px;background:transparent;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary);}
-  .nav-btn:disabled{opacity:0.4;cursor:not-allowed;}
-  .primary-btn{padding:10px 18px;font-size:14px;background:var(--color-text-info);color:var(--color-background-primary);border:none;border-radius:var(--border-radius-md);cursor:pointer;font-weight:500;}
-  .primary-btn:disabled{opacity:0.4;cursor:not-allowed;}
-  .score-box{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:24px;margin-bottom:1rem;text-align:center;}
-  .score-num{font-size:42px;font-weight:600;color:var(--color-text-primary);line-height:1;margin-bottom:4px;}
-  .score-lbl{font-size:13px;color:var(--color-text-secondary);}
-  .review-q{padding:14px 16px;border-radius:var(--border-radius-md);margin-bottom:10px;border:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary);}
-  .review-q.was-wrong{border-color:var(--color-border-danger);background:var(--color-background-danger);}
-  .review-q.was-right{border-color:var(--color-border-success);background:var(--color-background-success);}
-  .review-q .label{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;}
-  .review-q.was-wrong .label{color:var(--color-text-danger);}
-  .review-q.was-right .label{color:var(--color-text-success);}
-  .review-q .qline{font-size:14px;margin:4px 0 8px;color:var(--color-text-primary);}
-  .review-q .picked{font-size:13px;color:var(--color-text-danger);margin:4px 0;}
-  .review-q .correct{font-size:13px;color:var(--color-text-success);margin:4px 0;}
-  .review-q .expl{font-size:12px;color:var(--color-text-secondary);line-height:1.55;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--color-border-tertiary);}
-  .filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;}
-  .filter-pill{font-size:11px;padding:6px 10px;background:transparent;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);cursor:pointer;color:var(--color-text-secondary);}
-  .filter-pill.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-secondary);}
-</style>
-
-<div style="padding:1rem 0;">
-  <p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 4px;letter-spacing:0.08em;text-transform:uppercase;">PayrollOrg CPP exam</p>
-  <h2 style="font-size:22px;margin:0 0 4px;">Quiz suite</h2>
-  <p style="font-size:13px;color:var(--color-text-secondary);margin:0 0 1.25rem;">Domain quizzes, combined quiz, and full 190-question mock exam · randomized every time</p>
-  <div id="content"></div>
-</div>
-
-<script>
-const DOMAINS=[
-{id:'A',n:'Core Payroll Concepts',pct:24,mock:46},
-{id:'B',n:'Compliance/Research/Resources',pct:16,mock:30},
-{id:'C',n:'Calculation of the Paycheck',pct:20,mock:38},
-{id:'D',n:'Payroll Process & Supporting Systems',pct:12,mock:23},
-{id:'E',n:'Payroll Administration',pct:10,mock:19},
-{id:'F',n:'Audits',pct:9,mock:17},
-{id:'G',n:'Accounting',pct:9,mock:17}
-];
-
-const Q=[
-// === DOMAIN A — 50 questions ===
-{d:'A',q:'An employee\u0027s primary duty is supervising one full-time employee. Salary exceeds the threshold. Are they exempt under the executive exemption?',o:['Yes, salary level qualifies','Yes, if duties are supervisory','No, executive needs 2+ employees supervised','No, only outside sales qualifies'],c:2,e:'Executive exemption requires supervising 2+ full-time employees or equivalent. One direct report fails the test regardless of salary.'},
-{d:'A',q:'New hire starts work Monday. By what date must Section 2 of Form I-9 be completed?',o:['Same day','Next business day','3 business days after first day of work','7 calendar days'],c:2,e:'Section 2 must be completed within 3 business days. Weekends and federal holidays do not count.'},
-{d:'A',q:'Employee hired 1/1/2020, terminated 6/30/2024. How long must Form I-9 be retained?',o:['Until 1/1/2023','Until 6/30/2024','Until 6/30/2025','Until 1/1/2026'],c:2,e:'I-9 retention is later of 3 years after hire OR 1 year after termination. 3y after hire = 1/1/2023 (past). 1y after term = 6/30/2025. Later wins.'},
-{d:'A',q:'An employee submits a W-4 with no Step 1 information. How should the employer withhold?',o:['Reject the form, withhold at single/MFS with no adjustments','Use the highest single rate','Wait for employee to fix it','Use married filing jointly'],c:0,e:'Per Pub 15-T, default is Single/MFS with no entries in Steps 2-4 when no valid W-4 is on file.'},
-{d:'A',q:'Which of these is NOT one of the three categories under the IRS common-law test?',o:['Behavioral control','Financial control','Type of relationship','Salary basis'],c:3,e:'Salary basis is a test for FLSA exemption, not the common-law test. The three categories are behavioral, financial, and type of relationship.'},
-{d:'A',q:'Executive receives a $1,500,000 bonus separately identified. Mandatory federal withholding?',o:['$330,000','$405,000','$555,000','$220,000'],c:1,e:'22% × $1M = $220K plus 37% × $500K = $185K. Total $405,000. The 37% rate is mandatory above $1M.'},
-{d:'A',q:'Federal new-hire reporting deadline?',o:['7 days','10 days','20 days','30 days'],c:2,e:'Federal floor is 20 days from hire. Some states have shorter deadlines that override.'},
-{d:'A',q:'How long must FLSA payroll records be retained?',o:['2 years','3 years','4 years','7 years'],c:1,e:'FLSA requires 3 years for payroll records and 2 years for supporting records like timecards.'},
-{d:'A',q:'An employee qualifies as exempt outside sales. What is the minimum required salary?',o:['Same as executive exemption','Same as administrative exemption','None — outside sales has no salary requirement','At least minimum wage'],c:2,e:'Outside sales is the only white-collar exemption with no salary requirement. The duties test (sales away from employer premises) is the key.'},
-{d:'A',q:'IRS Form 2801C arrives at the employer. What is this?',o:['Notice of late deposit','Lock-in letter','New hire approval','SS-8 determination'],c:1,e:'Form 2801C is the IRS lock-in letter specifying maximum allowances. Must be implemented within 60 days.'},
-{d:'A',q:'After receiving a lock-in letter, can the employee submit a new W-4 with MORE withholding?',o:['No, the lock-in is binding','Yes, always allowed','Only with IRS approval','Only at year-end'],c:1,e:'Employees can always submit W-4s requesting more withholding. The lock-in only restricts LESS withholding than specified.'},
-{d:'A',q:'Hired 5/1/2025. Federal new-hire deadline?',o:['5/8/2025','5/15/2025','5/21/2025','5/31/2025'],c:2,e:'20 days from hire date 5/1 = 5/21. State law may impose shorter deadline.'},
-{d:'A',q:'Employee claims "Exempt" on W-4. When does this expire?',o:['December 31','February 15 of the following year','Anniversary of hire','It does not expire'],c:1,e:'Exempt status expires February 15. Must be renewed annually with a new W-4 or default to single/MFS withholding.'},
-{d:'A',q:'Which I-9 document combination satisfies Section 2?',o:['List A + List B','List A alone','List B alone','List C alone'],c:1,e:'One List A OR one List B PLUS one List C. List A documents (passport, green card) establish both identity and work authorization in one document.'},
-{d:'A',q:'A graphic designer works full-time for one marketing agency, uses agency computers, follows agency processes, receives benefits. The contract calls them an independent contractor. Status?',o:['Independent contractor as contracted','Likely employee under common-law test','Statutory employee','Statutory non-employee'],c:1,e:'Substance over form. Full-time, single client, employer tools, employer-set processes — all point to employee status regardless of contract label.'},
-{d:'A',q:'An inside sales representative makes calls from a corporate office. Are they exempt under outside sales?',o:['Yes, all sales reps are exempt','Yes, if they meet salary threshold','No, inside sales never qualifies for outside sales exemption','Only if they exceed quota'],c:2,e:'Outside sales requires customarily and regularly being away from employer\u0027s premises. Inside sales from a call center never qualifies.'},
-{d:'A',q:'Section 530 safe harbor relief requires:',o:['Just consistent treatment','Reasonable basis, consistent treatment, all 1099s filed','Reasonable basis only','IRS audit approval'],c:1,e:'All three prongs required: reasonable basis (prior audit, industry practice, court case), consistent treatment of similar workers, and all required 1099s filed.'},
-{d:'A',q:'Employee submits no W-4. How do you withhold?',o:['Don\u0027t withhold anything','Use most recent W-4 they ever submitted','Default to Single/MFS with no adjustments','Default to married'],c:2,e:'Pub 15-T default: Single or Married Filing Separately with no entries. Produces the highest withholding to protect both parties.'},
-{d:'A',q:'Federal minimum wage under FLSA?',o:['$5.15','$7.25','$10.10','$15.00'],c:1,e:'$7.25/hour since 2009. States can have higher minimums. The federal floor cannot be undercut.'},
-{d:'A',q:'FLSA enterprise coverage threshold for non-hospital/non-school businesses?',o:['$250,000 in annual sales','$500,000 in annual sales and 2+ employees','$1,000,000','Any size business'],c:1,e:'Enterprise coverage requires $500K+ annual gross sales AND interstate commerce involvement. Hospitals/schools/public agencies covered regardless of size.'},
-{d:'A',q:'A working supervisor spends 70% of time doing production work and 30% supervising. Executive exemption?',o:['Yes, if supervises 2+ employees','No, management is not the primary duty','Yes, with proper salary','Yes, regardless'],c:1,e:'Primary duty means what employee does the majority of the time. 70% production = primary duty is production, not management. Fails the executive duties test.'},
-{d:'A',q:'During an E-Verify tentative non-confirmation (TNC), the employer must:',o:['Terminate the employee','Continue employment without adverse action during contest period','Reduce hours until resolved','Send employee home unpaid'],c:1,e:'During TNC contest period (8 federal working days), no adverse action allowed. Continue employment normally until resolution.'},
-{d:'A',q:'Which is a behavioral control factor in the common-law test?',o:['Investment in equipment','Detailed work instructions','Available to general public','Written contract'],c:1,e:'Behavioral control covers how/when/where work is done and detailed instructions. Investment and availability are financial control. Written contract is type of relationship.'},
-{d:'A',q:'A new W-4 form is required to be submitted when:',o:['The employee gets married','The employee changes filing status','Both A and B','Only at hire'],c:2,e:'Employees should submit new W-4 for life events affecting withholding — marriage, divorce, dependents, etc. Employers should encourage updates but cannot require them outside lock-in scenarios.'},
-{d:'A',q:'Backup withholding rate on 1099 payments when TIN is wrong?',o:['10%','22%','24%','37%'],c:2,e:'Backup withholding is 24% federal. Reported on Form 945. Applies when payee fails to provide correct TIN or notified by IRS.'},
-{d:'A',q:'An employer requires the employee to present a passport rather than other I-9 documents. Legal?',o:['Yes, employer chooses documents','No, this is document abuse','Only with E-Verify','Only for new hires'],c:1,e:'Employee chooses from acceptable lists. Telling them which to present is document abuse — a recognized violation with fines per occurrence.'},
-{d:'A',q:'Aggregate method for supplemental wages is required when:',o:['Bonus is over $1 million','Supplemental wages not separately identified, OR no FITW on regular wages','Employee requests it','Quarterly bonus'],c:1,e:'Two triggers: supplemental not separately identified, OR no FITW withheld on regular wages. Otherwise the flat-rate method is optional.'},
-{d:'A',q:'Computer employee exemption — can they be paid hourly?',o:['No, must be salaried','Yes, with minimum hourly threshold','Only with prior IRS approval','Only above $200K annual'],c:1,e:'Unique to the computer employee exemption. Hourly is OK if hourly rate meets the minimum set by DOL. All other white-collar exemptions require salary basis.'},
-{d:'A',q:'The "suffer or permit to work" standard means:',o:['Employer must approve overtime','Employees pay for unauthorized hours','Employee paid for OT worked even unauthorized','Time off in lieu allowed'],c:2,e:'If employer knew or should have known employee was working, wages are owed. Discipline for unauthorized work is fine, but the wages are still owed.'},
-{d:'A',q:'A learned professional exemption requires:',o:['Any 4-year degree','Advanced knowledge in field of science or learning, typically requiring specialized study','Management role','Sales focus'],c:1,e:'Advanced knowledge customarily acquired through prolonged specialized intellectual instruction — typically a 4-year degree in the relevant field. Doctors, lawyers, accountants, engineers, RNs qualify.'},
-{d:'A',q:'$50,000 supplemental bonus, separately identified, employee\u0027s YTD bonuses are zero. Flat-rate FITW?',o:['$10,000','$11,000','$18,500','$22,000'],c:1,e:'22% × $50,000 = $11,000. Optional flat rate available because bonus is separately identified and under the $1M annual threshold.'},
-{d:'A',q:'YTD supplemental wages $1.2M, now paying additional $300K bonus. Mandatory FITW on the $300K?',o:['$66,000','$111,000','$96,000','$220,000'],c:1,e:'YTD already exceeded $1M, so the entire new $300K is at 37%. 37% × $300K = $111,000.'},
-{d:'A',q:'Which agency administers Form I-9?',o:['IRS','DOL','SSA','USCIS within DHS'],c:3,e:'I-9 is administered by U.S. Citizenship and Immigration Services within the Department of Homeland Security. Document abuse and other I-9 violations enforced by USCIS.'},
-{d:'A',q:'Reverification of I-9 work authorization is required for:',o:['All employees','Non-citizens with time-limited authorization, before doc expires','U.S. citizens at certain ages','Lawful permanent residents'],c:1,e:'Never required for U.S. citizens or lawful permanent residents. Required only for non-citizens whose work authorization document has an expiration date.'},
-{d:'A',q:'New hire reporting must include:',o:['Date of birth','Name, address, SSN, hire date, employer info','Wage rate','Filing status'],c:1,e:'Required: employee name/address/SSN/hire date, employer name/address/EIN. Date of birth is NOT required (common exam distractor).'},
-{d:'A',q:'The W-4 was redesigned in:',o:['2017','2018','2020','2022'],c:2,e:'The 2020 redesign eliminated allowances and introduced the 5-step process. Steps 1 and 5 are required; steps 2, 3, 4 are optional.'},
-{d:'A',q:'A clerical employee earns above the salary threshold. Are they exempt under administrative exemption?',o:['Yes, if salary qualifies','No, routine clerical work fails duties test','Yes, salary level is decisive','Only with manager title'],c:1,e:'Administrative exemption requires discretion and independent judgment on matters of significance. Routine clerical work fails even at high salary.'},
-{d:'A',q:'A graphic designer is told what the final deliverable must look like but is free to choose hours, tools, and methods. Most likely status?',o:['Employee','Independent contractor','Statutory employee','Cannot determine'],c:1,e:'Less control over how/when/where work is done suggests contractor. Result-oriented direction without process control is characteristic of independent contractor relationships.'},
-{d:'A',q:'An exempt employee is sometimes docked for partial-day absences. Consequence?',o:['No effect','May destroy the exemption, possibly retroactively','Reduces exemption to 80%','Triggers FUTA'],c:1,e:'Improper deductions from exempt salary can destroy the exemption, potentially retroactively for the entire class. The "window of correction" safe harbor exists but the safer practice is to never dock except for full-day absences in qualifying categories.'},
-{d:'A',q:'SSNVS is used to:',o:['Verify SSN matches SSA records','Replace lost Social Security cards','Apply for E-Verify','File W-2s'],c:0,e:'Social Security Number Verification Service is a free SSA tool to verify name/SSN matches before W-2 filing — prevents most CAWR mismatch letters the following year.'},
-{d:'A',q:'A retail store has $400,000 in annual sales. FLSA enterprise coverage?',o:['Yes, all businesses covered','No, below $500K threshold','Yes, if interstate commerce','Yes, automatic for retail'],c:1,e:'Enterprise coverage requires $500K+ annual sales AND interstate commerce. However, individual coverage (broader) may still apply to specific employees engaged in interstate commerce.'},
-{d:'A',q:'A 17-year-old can work in:',o:['Any occupation','Non-hazardous occupations with hour restrictions','Hazardous occupations after 16','No occupations'],c:1,e:'FLSA child labor: 14-15 limited hours and non-hazardous; 16-17 unlimited hours but non-hazardous only; 18+ all occupations. Hazardous occupations require age 18.'},
-{d:'A',q:'A salaried non-exempt employee works 45 hours. Owed overtime?',o:['No, salaried employees are exempt','Yes, salary basis does not eliminate OT','Only if hourly equivalent','Only over 50 hours'],c:1,e:'Salary basis is one of three exemption tests. Salaried doesn\u0027t mean exempt. Non-exempt salaried employees still earn OT after 40 hours.'},
-{d:'A',q:'The five categories of white-collar exemptions are:',o:['Executive, administrative, professional, computer, outside sales','Executive, manager, supervisor, professional, sales','All salaried jobs','Defined by employer'],c:0,e:'Five categories: Executive, Administrative, Learned Professional (and Creative Professional), Computer Employee, Outside Sales. Each has its own duties test plus salary basis and level.'},
-{d:'A',q:'An inside sales rep handles the entire sales cycle from their desk. Exemption?',o:['Outside sales','Administrative','Inside sales (special exemption)','Likely non-exempt unless other exemption fits'],c:3,e:'No inside-sales exemption exists. Most inside reps are non-exempt unless they meet administrative or other duties tests separately.'},
-{d:'A',q:'A worker disputes their 1099 classification. They file:',o:['Form 4070','Form 8919','Form 1040','Form W-4'],c:1,e:'Form 8919 — Uncollected Social Security and Medicare Tax on Wages. Employee files when treated as contractor but believes employee status is correct. Reports their share of SS/Medicare.'},
-{d:'A',q:'The default W-4 when employee submits nothing is:',o:['Single with one allowance','Single/MFS with no other entries','Married','Highest withholding rate'],c:1,e:'Per Pub 15-T: Single or Married Filing Separately with no entries in Steps 2-4. Highest withholding for any given wage among valid filing statuses.'},
-{d:'A',q:'Document abuse fines apply per:',o:['Employer','Per affected employee','Per affected occurrence','State'],c:2,e:'Civil penalties for I-9 violations including document abuse are assessed per affected employee/occurrence, and stack quickly with patterns of violations.'},
-{d:'A',q:'How often must a tipped employee report tips to the employer?',o:['Daily','At least monthly if $10+ in tips','Weekly','At year-end'],c:1,e:'Form 4070 or equivalent: at least monthly when an employee receives $10 or more in tips from a single employer.'},
-{d:'A',q:'Federal income tax withholding default for an employee with no W-4 produces:',o:['Lowest withholding','Highest withholding for a given wage','Random amount','No withholding at all'],c:1,e:'Single/MFS with no entries produces the highest withholding of any valid status — protective default for both employee and IRS.'},
-
-// === DOMAIN B — 32 questions ===
-{d:'B',q:'Social Security tax rate (employee)?',o:['1.45%','6.2%','7.65%','12.4%'],c:1,e:'Employee pays 6.2% of Social Security wages. Employer matches at 6.2%. Combined rate is 12.4%.'},
-{d:'B',q:'Medicare tax rate (employee)?',o:['1.45%','2.9%','6.2%','7.65%'],c:0,e:'Employee pays 1.45% of Medicare wages. Employer matches at 1.45%. No wage base — applies to every dollar of FICA wages.'},
-{d:'B',q:'Additional Medicare Tax rate?',o:['0.9% on wages over $200K, employee only','1.45% on all wages','0.9% with employer match','1.9% on wages over $1M'],c:0,e:'0.9% on wages over $200K YTD at this employer. Employee only — no employer match. Employer always uses single-filer $200K threshold regardless of actual filing status.'},
-{d:'B',q:'FUTA wage base per employee per year?',o:['$7,000','$10,000','$14,000','$176,100'],c:0,e:'First $7,000 of wages per employee per year subject to FUTA. Maximum FUTA per employee at full SUTA credit is $42 (0.6% × $7,000).'},
-{d:'B',q:'Statutory FUTA rate before SUTA credit?',o:['0.6%','5.4%','6.0%','7.5%'],c:2,e:'6.0% statutory rate. Up to 5.4 percentage point credit for timely SUTA = 0.6% effective rate for most employers.'},
-{d:'B',q:'FUTA deposit threshold?',o:['$100','$500 quarterly liability','$1,000','$2,500'],c:1,e:'Deposit required when quarterly FUTA liability exceeds $500. If $500 or less, carries forward to next quarter, year-end paid with 940.'},
-{d:'B',q:'Form 940 due date?',o:['January 31 (Feb 10 with extension)','March 15','April 15','June 30'],c:0,e:'Annual FUTA return — due January 31. Ten-day extension to February 10 if all deposits made timely during the year.'},
-{d:'B',q:'Form 941 due dates?',o:['Annually','Quarterly on last day of month after quarter','Monthly on 15th','Semiannually'],c:1,e:'Q1: April 30. Q2: July 31. Q3: October 31. Q4: January 31. Ten-day extension if all deposits made timely during the quarter.'},
-{d:'B',q:'Who receives W-2 filings?',o:['IRS','Social Security Administration','Department of Labor','Treasury'],c:1,e:'W-2s are filed with SSA, which shares data with IRS. SSA needs the data for lifetime earnings records. Catches many people because W-2 is a tax form.'},
-{d:'B',q:'Form 945 reports:',o:['Non-payroll federal income tax withholding','Quarterly FICA','Annual FUTA','State unemployment'],c:0,e:'Form 945 — Annual Return of Withheld Federal Income Tax. Covers pensions, annuities, gambling winnings, backup withholding. Due January 31.'},
-{d:'B',q:'The Social Security wage base for 2025?',o:['$160,200','$168,600','$176,100','$200,000'],c:2,e:'2025 SS wage base is $176,100. Adjusts annually based on national average wage index. The Medicare base has no cap.'},
-{d:'B',q:'Does Social Security wage base transfer between employers?',o:['Yes, automatically','No, each employer applies independently','Only with prior approval','Only for related employers'],c:1,e:'Each employer applies the wage base independently. Employee may pay excess SS tax across multiple employers — gets credit on Form 1040.'},
-{d:'B',q:'Employer\u0027s match on Additional Medicare Tax?',o:['1.45%','0.9%','None','Same as employee'],c:2,e:'No employer match for Additional Medicare. Unlike basic Medicare and Social Security which have matching, Add\u0027l Medicare is employee-only.'},
-{d:'B',q:'YTD wages $190K, paycheck $20K. Additional Medicare withholding?',o:['$0','$90 (on the $10K over threshold)','$180 (on full $20K)','$90 then $180'],c:1,e:'Threshold is $200K. Only the $10K over threshold subject to 0.9%. 0.9% × $10K = $90 Additional Medicare withholding for this paycheck.'},
-{d:'B',q:'IRS Publication 15 is commonly known as:',o:['Circular E','Pub 15-T','Form 941 Guide','Cafeteria Plan Manual'],c:0,e:'Pub 15 (Circular E) is the general guide for federal employment tax withholding. Pub 15-T has the detailed methods and tables.'},
-{d:'B',q:'IRS Publication 15-T covers:',o:['Federal employment tax penalties','Wage withholding methods and tables','Cafeteria plans','FICA rates'],c:1,e:'Pub 15-T — Federal Income Tax Withholding Methods. Contains percentage method formulas and wage-bracket tables for FITW.'},
-{d:'B',q:'IRS Publication 15-B covers:',o:['Backup withholding','Fringe benefits','State tax tables','Form 941'],c:1,e:'Pub 15-B — Employer\u0027s Tax Guide to Fringe Benefits. Covers GTL, transportation, company cars, awards, achievement awards, education assistance, etc.'},
-{d:'B',q:'CCPA is enforced by:',o:['IRS','Department of Labor','SSA','USCIS'],c:1,e:'Consumer Credit Protection Act, including Title III on wage garnishment limits, is enforced by the DOL Wage and Hour Division.'},
-{d:'B',q:'ERISA is administered by:',o:['IRS only','DOL Employee Benefits Security Administration (plus IRS for tax aspects)','SSA','DHS'],c:1,e:'EBSA within DOL administers ERISA. IRS handles the tax aspects (qualified plan rules, contribution limits, etc.).'},
-{d:'B',q:'Federal child support orders typically arrive on:',o:['Form W-9','Income Withholding for Support (IWO) form','Form 941','Form 668-W'],c:1,e:'IWO is the OMB-approved standard form for child support income withholding orders. Used by all state child support agencies.'},
-{d:'B',q:'The 30 × federal minimum wage protection for creditor garnishments is:',o:['$181.25 per week','$217.50 per week','$290.00 per week','$435.00 per week'],c:1,e:'30 × $7.25 = $217.50 per week. Disposable earnings at or below this amount are protected from creditor garnishment.'},
-{d:'B',q:'Maximum federal student loan administrative wage garnishment?',o:['10% of disposable','15% of disposable, OR lesser of 25% CCPA cap','25% of gross','No federal cap'],c:1,e:'15% of disposable, or lesser of the 25% CCPA creditor cap. Multiple federal student loan creditors limited collectively to 15%.'},
-{d:'B',q:'PRWORA established:',o:['Modern overtime rules','New-hire reporting and child support enforcement','FUTA tax rate','Social Security wage base'],c:1,e:'Personal Responsibility and Work Opportunity Reconciliation Act (1996). Established federal new-hire reporting and modernized child support enforcement.'},
-{d:'B',q:'ACA Section 6056 requires:',o:['Health coverage offers','Form 1095-C filing by Applicable Large Employers','SS wage base reporting','State income tax'],c:1,e:'Section 6056 — reporting by Applicable Large Employers on Form 1095-C. ALE = 50+ FTEs. Reports health coverage offered to full-time employees.'},
-{d:'B',q:'A federal tax levy arrives on:',o:['Form 941','Form 940','Form 668-W','Form 1099'],c:2,e:'Form 668-W is the IRS levy on wages, salary, and other income. Pub 1494 provides the exempt amount based on filing status and dependents.'},
-{d:'B',q:'OSHA injury record retention?',o:['1 year','3 years','5 years','7 years'],c:2,e:'OSHA 300 log, 301 incident reports, 300A annual summary — all retained 5 years.'},
-{d:'B',q:'FLSA payroll record retention?',o:['1 year','2 years','3 years','7 years'],c:2,e:'3 years for payroll records (FLSA). 2 years for supporting records (timecards, schedules). 4 years for IRS employment tax records.'},
-{d:'B',q:'NACHA governs:',o:['ACH transactions including direct deposit','Federal payroll taxes','Bankruptcy','Workers comp'],c:0,e:'National Automated Clearing House Association sets ACH rules. Direct deposit operates through ACH.'},
-{d:'B',q:'A "credit reduction state" loses how many percentage points of FUTA credit in the first year?',o:['0.1','0.3','0.6','1.0'],c:1,e:'First-year credit reduction: 0.3 points. Effective FUTA rate jumps from 0.6% to 0.9%. Reduction continues to grow as state loan remains unpaid.'},
-{d:'B',q:'Who administers SSNVS?',o:['IRS','SSA','DOL','USCIS'],c:1,e:'Social Security Number Verification Service is run by SSA. Free tool for employers to verify SSN matches before W-2 filing.'},
-{d:'B',q:'Form 8959 is used by:',o:['Employer','Employee, to reconcile Add\u0027l Medicare on personal return','Both','State tax agency'],c:1,e:'Form 8959 — Additional Medicare Tax — filed by employee with personal return. Reconciles employer-withheld Add\u0027l Medicare with actual liability based on filing status and total wages.'},
-{d:'B',q:'YTD SS wages $170K, current paycheck $10K, SS base $176,100. SS tax on this paycheck?',o:['$0','$378.20 (only $6,100 still subject)','$620','$1,000'],c:1,e:'Only $6,100 of the $10,000 paycheck is still subject to SS ($176,100 − $170,000). $6,100 × 6.2% = $378.20.'},
-
-// === DOMAIN C — 42 questions ===
-{d:'C',q:'Regular rate formula?',o:['Hourly rate × 1.5','Total remuneration ÷ Total hours worked','Annual salary ÷ 2,080','Base pay × OT premium'],c:1,e:'Regular rate = (total remuneration for workweek, minus statutory exclusions) ÷ total hours worked. Includes non-discretionary bonuses, shift premiums, commissions.'},
-{d:'C',q:'$15/hr × 45 hours + $100 attendance bonus. Regular rate?',o:['$15.00','$15.50','$17.22','$22.50'],c:2,e:'(45 × $15) + $100 = $775. $775 ÷ 45 = $17.22 regular rate. Bonus is non-discretionary and must be included.'},
-{d:'C',q:'Regular rate $17.22, 5 OT hours. OT premium?',o:['$25.83','$43.06 (0.5 × $17.22 × 5)','$86.10','$129.15'],c:1,e:'When straight time has already been paid on all hours (including OT hours), OT premium is the additional 0.5 × regular rate × OT hours. 0.5 × $17.22 × 5 = $43.06.'},
-{d:'C',q:'Discretionary vs non-discretionary bonus — which goes into regular rate?',o:['Both','Only discretionary','Only non-discretionary','Neither'],c:2,e:'Non-discretionary (announced, expected, performance-based) goes IN. Truly discretionary (sole discretion of employer in fact AND amount, not announced) is OUT. Most bonuses are non-discretionary.'},
-{d:'C',q:'Federal tipped cash wage minimum?',o:['$2.13','$5.12','$7.25','$10.10'],c:0,e:'Federal tipped cash wage is $2.13/hour. Max tip credit is $5.12. Combined = $7.25 full minimum wage. If tips fall short, employer must make up the difference.'},
-{d:'C',q:'Federal maximum tip credit?',o:['$2.13','$5.12','$7.25','$10.10'],c:1,e:'Maximum tip credit is $5.12/hour ($7.25 − $2.13). Some states (CA, NV, MT, AK, MN, OR, WA) prohibit tip credits entirely.'},
-{d:'C',q:'Section 125 medical deduction — tax treatment?',o:['Exempt from FITW only','Exempt from FICA only','Exempt from all four (FITW, SS, Medicare, FUTA)','Subject to all four'],c:2,e:'Section 125 cafeteria plan benefits exempt from FITW, FICA, and FUTA. Main exception: adoption assistance (exempt FITW only).'},
-{d:'C',q:'Traditional 401(k) deferral — FICA treatment?',o:['Exempt','Subject to FICA (common exam trap)','Reduced by 50%','Only above threshold'],c:1,e:'Traditional 401(k) is exempt from FITW but SUBJECT to FICA and FUTA. Common exam trap because of the FITW exemption.'},
-{d:'C',q:'Roth 401(k) contribution — tax treatment?',o:['Exempt from all four','Subject to all four (after-tax)','Exempt from FITW only','Exempt from FICA only'],c:1,e:'Roth contributions are after-tax. Subject to FITW, SS, Medicare, and FUTA. Trade-off: tax-free growth and qualified withdrawals later.'},
-{d:'C',q:'GTL coverage over $50,000 — tax treatment?',o:['Exempt from all four','Subject to FICA only (exempt FITW and FUTA)','Subject to all four','Exempt'],c:1,e:'GTL over $50K imputed income: exempt FITW, subject to FICA, exempt FUTA. Reported W-2 Box 12 Code C.'},
-{d:'C',q:'45-year-old with $150K GTL coverage. Table I rate is $0.15/$1,000/month. Annual imputed income?',o:['$15','$150','$180','$225'],c:2,e:'Excess coverage $100K → 100 thousands. $0.15 × 100 = $15/month. $15 × 12 = $180 annually.'},
-{d:'C',q:'CCPA child support — supports another, current, max?',o:['50%','55%','60%','65%'],c:0,e:'Tier 1: supports another spouse/child, current on payments = 50% of disposable. Lowest tier.'},
-{d:'C',q:'CCPA child support — no other dependent, 12+ weeks arrears, max?',o:['50%','55%','60%','65%'],c:3,e:'Tier 4: no other supported, 12+ weeks arrears = 65% of disposable. Highest tier.'},
-{d:'C',q:'Disposable earnings = gross minus:',o:['All deductions','Legally required deductions only (taxes, mandatory retirement)','Pre-tax deductions','Net pay'],c:1,e:'Only legally REQUIRED deductions reduce disposable earnings: FITW, FICA, state tax, mandatory state retirement, court-ordered support. Voluntary deductions (Section 125, 401(k)) don\u0027t reduce.'},
-{d:'C',q:'Federal creditor garnishment cap?',o:['25% of disposable','Lesser of 25% disposable OR amount over $217.50/week','15% of gross','50% disposable'],c:1,e:'Lesser of: 25% of disposable earnings, OR amount over 30 × federal min wage ($217.50/week). Lower wins, protecting low earners.'},
-{d:'C',q:'$800 disposable earnings. Tier 2 (55%) child support. $600 order. Withhold?',o:['$600 (full order)','$440 (55% cap)','$300','$800'],c:1,e:'55% × $800 = $440 cap. Order asks $600 but cap is $440. Withhold $440. Unpaid $160 accrues as arrears. Notify issuing agency.'},
-{d:'C',q:'Federal tax levy uses:',o:['CCPA percentage caps','Pub 1494 exempt amount based on filing status/dependents','25% cap','Fixed dollar amount'],c:1,e:'Federal tax levies don\u0027t follow CCPA caps. Pub 1494 specifies exempt amount by filing status, dependents, and pay frequency. Take-home minus exempt = amount to IRS.'},
-{d:'C',q:'Garnishment priority — typical order from top?',o:['Creditor → student loan → child support','Bankruptcy → federal tax levy → child support → state tax → student loan → creditor','Federal tax levy → creditor → child support','Alphabetical'],c:1,e:'Bankruptcy → federal tax levy → child support → state tax levy → student loan → creditor. Child support can take priority over earlier federal tax levies under PRWORA in some situations.'},
-{d:'C',q:'A non-exempt employee paid two rates in the same week. Default OT method?',o:['Higher rate prevails','Weighted average','Lower rate prevails','OT not owed'],c:1,e:'Default: weighted average. Total straight-time earnings ÷ total hours = regular rate. Rate-in-effect method requires written agreement in advance.'},
-{d:'C',q:'Fluctuating workweek overtime premium?',o:['1.5 × regular rate × OT hours','0.5 × regular rate × OT hours (salary covers straight time)','Same as standard OT','2 × regular rate'],c:1,e:'FWW: salary covers straight time on all hours including OT. Premium is only the additional half-time. Employer-favorable method requiring strict compliance with 5 requirements.'},
-{d:'C',q:'Comp time in lieu of OT pay — allowed in:',o:['Private sector','Public sector only, 1.5 hrs per OT hour','Both sectors','Neither'],c:1,e:'Comp time in lieu of cash OT is PUBLIC SECTOR ONLY. Private-sector employers offering comp time instead of cash OT are violating FLSA. Max accrual: 240 hours general, 480 hours public safety.'},
-{d:'C',q:'Tip pools — can managers participate?',o:['Yes, always','Yes, if tip credit not taken','No, never (under any circumstance)','Only with employee consent'],c:2,e:'2018 FLSA amendments and 2021 final rule: managers and supervisors NEVER in tip pools. Tip credit status irrelevant. Strict rule.'},
-{d:'C',q:'$1,000/week salary FWW employee works 50 hours. Total pay?',o:['$1,000','$1,100','$1,500','$1,625'],c:1,e:'$1,000 ÷ 50 = $20 regular rate. 0.5 × $20 × 10 OT hours = $100 premium. $1,000 + $100 = $1,100.'},
-{d:'C',q:'Same FWW employee works 60 hours. Total pay?',o:['$1,000','$1,167','$1,500','$1,667'],c:1,e:'$1,000 ÷ 60 = $16.67 regular rate. 0.5 × $16.67 × 20 OT hours = $166.67 premium. Total = $1,166.67. Regular rate shrinks as hours grow — the FWW math feature.'},
-{d:'C',q:'$5,000 dependent care FSA contribution — tax treatment?',o:['Subject to FICA','Exempt from all four (always through Section 125)','Exempt FITW only','Limited to FUTA'],c:1,e:'Dependent care FSA always through Section 125, exempt from all four. Annual cap $5,000 (single/MFJ). Reported W-2 Box 10.'},
-{d:'C',q:'HSA via direct payroll (NOT through Section 125)?',o:['Exempt from all four','Exempt FITW only, subject to FICA and FUTA','Subject to all four','Exempt FICA only'],c:1,e:'Outside cafeteria plan: exempt FITW only. Through Section 125: exempt all four. Reported W-2 Box 12 Code W either way.'},
-{d:'C',q:'Adoption assistance via Section 125 — tax treatment?',o:['Exempt all four (like other 125 benefits)','Exempt FITW only, subject to FICA and FUTA','Subject to all four','Exempt FUTA only'],c:1,e:'Major exception to general Section 125 rule. Adoption assistance: exempt FITW (within annual limit), STILL subject to FICA and FUTA. Reported W-2 Box 12 Code T.'},
-{d:'C',q:'Service charge (mandatory 18% added to large parties) — wages or tips?',o:['Tips','Regular wages, employer property','Half wages, half tips','Tax-free'],c:1,e:'Service charges are mandatory amounts set by employer — NOT tips. They are wages: count toward minimum wage, included in regular rate, subject to all employment taxes.'},
-{d:'C',q:'Employee achievement award (non-qualified plan) — exclusion limit per year?',o:['$0','$400','$1,600','$5,250'],c:1,e:'Non-qualified plan: $400 per employee per year for tangible personal property awards. Qualified plan with written nondiscriminatory program: $1,600. Cash never qualifies.'},
-{d:'C',q:'Section 127 educational assistance annual limit?',o:['$2,500','$5,250','$10,000','None'],c:1,e:'$5,250 per employee per year. Exempt from all four when properly structured. Through 2025 can include student loan principal/interest payments.'},
-{d:'C',q:'Qualified transportation fringe (parking/transit) — tax treatment?',o:['Exempt all four within monthly IRS limit','Subject to all four','Exempt FITW only','Limited to FICA'],c:0,e:'Section 132(f). Parking and transit benefits exempt from all four within monthly IRS limit. Bicycle commuting suspended under TCJA.'},
-{d:'C',q:'$2,000 personal use of company car imputed income — tax treatment?',o:['Exempt all four','Subject to all four (employer may elect not to withhold FITW)','Exempt FUTA','Exempt FICA'],c:1,e:'Subject to all four. Employer can elect not to withhold FITW (employee owes on personal return), but FICA and FUTA still apply.'},
-{d:'C',q:'Cash gift card to employee — tax treatment?',o:['De minimis if small','Always fully taxable, never de minimis regardless of amount','Exempt if under $25','Subject to FITW only'],c:1,e:'Cash and cash equivalents (including gift cards) are NEVER de minimis. Always fully taxable regardless of amount. Common audit finding.'},
-{d:'C',q:'Public sector comp time max accrual for general employees?',o:['80 hours','240 hours','480 hours','No cap'],c:1,e:'240 hours for general public employees. 480 hours for public safety, emergency response, and seasonal. After cap, additional OT must be paid in cash.'},
-{d:'C',q:'Allocated tips — which W-2 box?',o:['Box 1','Box 7','Box 8','Box 10'],c:2,e:'Box 8 is allocated tips for large food/beverage establishments. Box 7 is Social Security tips. Box 10 is dependent care benefits.'},
-{d:'C',q:'Section 7(k) 28-day work period OT threshold for police?',o:['160 hours','171 hours','212 hours','240 hours'],c:1,e:'Fire: 212 hours. Police: 171 hours. Shorter work periods have proportionally lower thresholds. Used for public safety scheduling.'},
-{d:'C',q:'Worked at two rates: 25 hrs @ $15, 25 hrs @ $20. Regular rate (weighted avg)?',o:['$15.00','$17.50','$18.50','$20.00'],c:1,e:'$375 + $500 = $875 ÷ 50 = $17.50. OT premium = 0.5 × $17.50 × 10 OT hours = $87.50.'},
-{d:'C',q:'A discretionary bonus must be:',o:['Announced in advance','In sole discretion of employer in both fact AND amount, not announced','Performance-based','Quarterly'],c:1,e:'BOTH fact of payment AND amount in sole discretion. NOT announced, expected, or performance-tied. Very few bonuses actually qualify in practice.'},
-{d:'C',q:'A bonus tied to attendance is:',o:['Discretionary','Non-discretionary, must be in regular rate','Exempt from FICA','Below regular rate'],c:1,e:'Attendance bonus is non-discretionary — performance-based and predictable. Must be included in regular rate for OT calculations.'},
-{d:'C',q:'Dependent care FSA annual cap (single/MFJ)?',o:['$2,500','$5,000','$10,500','$15,000'],c:1,e:'$5,000 for single/MFJ. $2,500 for married filing separately. Used for care of children under 13 or qualifying disabled dependents while employee/spouse work.'},
-{d:'C',q:'Health FSA contributions — when funds available?',o:['As contributed','Full annual election available day 1','Quarterly','At year-end'],c:1,e:'Health FSA: full annual election available on day 1 of plan year, even though contributions made throughout. Unique to health FSA. Dependent care FSA: funds available as contributed.'},
-{d:'C',q:'In a state that disallows tip credit (e.g., CA, NV), employer must pay tipped employees:',o:['Federal tipped cash minimum','Full state minimum wage in cash, with tips on top','Higher of federal or state cash min','No minimum'],c:1,e:'States with no tip credit (CA, NV, MT, AK, MN, OR, WA): pay full state minimum wage in cash, tips are additional. Employer cannot take a tip credit.'},
-
-// === DOMAIN D — 30 questions ===
-{d:'D',q:'Five phases of the payroll cycle (in order)?',o:['Input → Processing → Output → Post-processing → Reporting','Reporting → Input → Output → Processing → Post','Processing → Input → Output → Reporting → Post','Random order'],c:0,e:'Input (data collection), Processing (calculations), Output (paychecks/ACH), Post-processing (register, GL, deposits), Reporting (941, W-2, etc.).'},
-{d:'D',q:'SUI four-factor test — applied how?',o:['Weight all factors equally','Sequentially — stop at first factor that produces an answer','Use highest factor','Pick the most favorable'],c:1,e:'Sequential: 1) Localization, 2) Base of operations, 3) Direction and control, 4) Residence. Stop at the first factor that yields a state.'},
-{d:'D',q:'Remote employee in Ohio reports to Illinois manager. Work entirely from home. SUI state?',o:['Illinois','Ohio (localization in OH)','Either','Employee chooses'],c:1,e:'Factor 1 (localization) produces OH. Work is localized in Ohio. The Illinois manager is irrelevant because factor 1 already produced an answer.'},
-{d:'D',q:'Mandatory State Disability Insurance jurisdictions?',o:['All 50 states','CA, NJ, NY, RI, HI, Puerto Rico','TX and FL','Federal program'],c:1,e:'Six jurisdictions mandate SDI: California, New Jersey, New York, Rhode Island, Hawaii, Puerto Rico. Each has its own contribution structure.'},
-{d:'D',q:'California SDI is funded by:',o:['100% employer','50/50 split','100% employee','Federal government'],c:2,e:'CA SDI is 100% employee-funded. Rate and wage base set annually. NJ TDI is split between employee and employer.'},
-{d:'D',q:'SOC 1 Type II report vs Type I?',o:['Same thing','Type I describes design; Type II tests operating effectiveness over 6-12 months','Type I is more rigorous','Type II is older'],c:1,e:'Type I: design at a point in time (largely useless for reliance). Type II: operating effectiveness over an audit period (6-12 months typical). Always request Type II.'},
-{d:'D',q:'IRS employment tax record retention?',o:['2 years','3 years','4 years','7 years'],c:2,e:'IRS: 4 years after due date or payment, whichever later. FLSA: 3 years. Many practitioners default to 7 years to cover all rules.'},
-{d:'D',q:'Reciprocity agreements between states:',o:['Eliminate all multi-state tax issues','Resident state taxes, work state agrees not to tax (employee files non-residency cert)','Apply automatically','Federal program'],c:1,e:'Employee files non-residency certificate with work-state employer. Work state agrees not to tax wages. Employer withholds for resident state only.'},
-{d:'D',q:'Convenience-of-the-employer rule — what does it do?',o:['Allows employee to choose work state','Treats remote work as employer-state-source income if not required to be remote','Eliminates state tax','Federal rule'],c:1,e:'States with convenience-of-employer (notably NY): if employee works remotely for their convenience (not employer\u0027s requirement), income is sourced to employer state. Can cause double tax.'},
-{d:'D',q:'Form 8922 is:',o:['ACA reporting','Third-Party Sick Pay Recap','State withholding reconciliation','Wage report'],c:1,e:'Form 8922 reconciles when third-party paying sick pay is not the employer\u0027s agent. Due January 31 of year following the sick pay.'},
-{d:'D',q:'Third-party sick pay FICA rule?',o:['Always subject','Subject for first 6 calendar months after employee last worked, exempt after','Always exempt','Subject only if W-4S filed'],c:1,e:'Six-month FICA rule. Subject to FICA for 6 calendar months after last day worked. Exempt after. FITW only if W-4S filed.'},
-{d:'D',q:'Three types of internal controls?',o:['Preventive, Detective, Corrective','Manual, Automated, Hybrid','Hard, Soft, Compensating','Risk, Audit, Compliance'],c:0,e:'COSO framework: Preventive (stop errors), Detective (find errors after), Corrective (fix what detective found). All three needed for strong control environment.'},
-{d:'D',q:'Most important payroll internal control?',o:['Manager review','Segregation of duties','Audit logs','Background checks'],c:1,e:'Segregation of duties — same person should not initiate AND approve. Person who adds employees should not approve payroll. Person who signs checks should not reconcile bank.'},
-{d:'D',q:'Regulation E paycard requirements include:',o:['Mandatory direct deposit','Free withdrawal of full balance once per pay period','5% transaction fee','Employer-only access'],c:1,e:'Reg E: employee can withdraw full balance once per pay period without fee. Plus disclosures, error resolution, free balance checks at network ATMs.'},
-{d:'D',q:'New employer depositor status?',o:['Semiweekly','Monthly until lookback period applies','$100K trigger immediately','Annual'],c:1,e:'New employers default to monthly until they have enough history for lookback (typically ~18 months in). $100K rule still applies if triggered.'},
-{d:'D',q:'Workers compensation in Texas?',o:['Required like all states','Optional (only state where it\u0027s optional)','Federal program','Higher rates required'],c:1,e:'TX is the only state where workers comp is technically optional. Non-subscribers face significant tort liability. Most TX employers carry coverage anyway.'},
-{d:'D',q:'Final pay timing in California (involuntary termination)?',o:['Next regular payday','Within 7 days','Same day as termination','Within 30 days'],c:2,e:'CA: same day for involuntary termination. Triggers waiting-time penalties for late payment. CA is among the strictest states for final pay.'},
-{d:'D',q:'Pennsylvania has reciprocity with:',o:['Florida and Georgia','New Jersey, Ohio, Indiana, Maryland, Virginia, West Virginia','California only','None'],c:1,e:'PA reciprocity: NJ, IN, MD, OH, VA, WV. Resident files non-residency certificate with PA-state employer to be taxed only by resident state.'},
-{d:'D',q:'27th biweekly pay period occurs:',o:['Every year','Roughly every 11 years due to calendar alignment','Never','Every leap year'],c:1,e:'365.25 days ÷ 14 days = 26.09 periods normally. The fraction accumulates until a year contains 27 paydays, roughly every 11 years.'},
-{d:'D',q:'PEO vs ASO — difference?',o:['Same thing','PEO is co-employer; ASO is administrative only','PEO is cheaper','ASO handles taxes only'],c:1,e:'PEO (Professional Employer Organization) becomes legal co-employer — handles all employment tax filings, benefits, workers comp. ASO (Administrative Services Org) provides services but you remain sole employer of record.'},
-{d:'D',q:'Escheatment — what is it?',o:['Pay raise process','Turning over unclaimed property (uncashed wages) to state after dormancy','Tax penalty','Audit finding'],c:1,e:'Unclaimed property law. After state dormancy period (1-5 years), employer remits uncashed wages to state. Employee can later claim from state.'},
-{d:'D',q:'Local income tax states with significant complexity?',o:['CA, NY, IL','PA, OH, IN, KY, MD, NYC','Texas only','All states equal'],c:1,e:'PA (EIT + LST), OH (municipal), IN (county), KY (occupational), MD (county), NYC. Multi-state employers in these jurisdictions face heavy local tax setup.'},
-{d:'D',q:'New York applies which controversial rule for remote workers?',o:['Resident-only rule','Convenience-of-employer rule (most aggressive application)','Work-state-only rule','No rule'],c:1,e:'NY most aggressive. Remote worker from another state, working remotely for own convenience, can still owe NY tax. Other convenience-rule states: CT, DE, NE, PA, AR.'},
-{d:'D',q:'Pay frequency required for manual workers in New York?',o:['Monthly','Weekly','Quarterly','Annually'],c:1,e:'NY requires manual workers be paid weekly. Clerical workers can be semimonthly minimum. State law trumps federal default and employee preference.'},
-{d:'D',q:'Implementation parallel testing means:',o:['Two people enter data','Running old and new systems side-by-side, reconciling','Testing two cycles','API testing'],c:1,e:'Run old and new payroll systems on same data for 2-3 cycles before cutover. Reconcile every variance, even pennies. Critical for confidence in new system.'},
-{d:'D',q:'Direct deposit consent rule under most state laws?',o:['Employer can require','Employee must have choice of payment method','Federal requirement','None'],c:1,e:'Federal law and most state laws: employer cannot require direct deposit as condition of employment. Employee chooses receiving institution.'},
-{d:'D',q:'Workers compensation benefits — taxable?',o:['Subject to all four','Generally not taxable (exempt FITW, FICA, FUTA)','Subject to FICA only','Subject to FUTA only'],c:1,e:'Workers comp benefits paid to injured employees generally not taxable for federal income tax, FICA, or FUTA purposes. They aren\u0027t wages.'},
-{d:'D',q:'Sick pay — employee submits W-4S to third-party payer. Effect?',o:['Triggers FICA','Triggers FITW per employee election','Stops all withholding','State only'],c:1,e:'W-4S is the election for federal income tax withholding on sick pay paid by a third party. Without W-4S, no FITW is withheld. FICA applies regardless.'},
-{d:'D',q:'SDI tax treatment for federal?',o:['Pre-tax for FITW (deductible) but subject to FICA','Subject to all four','Exempt all four','Federal program'],c:0,e:'State Disability Insurance: pre-tax for FITW (employee deduction on Schedule A possible). Subject to FICA. State programs vary in funding split.'},
-{d:'D',q:'Total Cost of Ownership for payroll vendor should include:',o:['Subscription only','Subscription + implementation + training + integrations + ongoing + exit','Subscription + implementation','Implementation only'],c:1,e:'Build 3-5 year TCO including all categories — subscription, implementation, training, integrations, year-end fees, off-cycle fees, internal staff time, and exit costs. Always model the exit.'},
-
-// === DOMAIN E — 30 questions ===
-{d:'E',q:'$100,000 next-day deposit rule. Effect on depositor status?',o:['No change','Becomes semiweekly for rest of year + all of next year','Permanent semiweekly','Monthly always'],c:1,e:'Trigger the $100K rule on any single day: deposit by next business day, AND become semiweekly depositor for rest of current year and all of next calendar year. Twelve-month-plus aftermath.'},
-{d:'E',q:'Monthly depositor threshold?',o:['Lookback liability ≤ $50,000','> $100,000','> $250,000','Any size'],c:0,e:'Lookback period (July 1 of two years prior through June 30 of prior year) liability ≤ $50K → monthly. > $50K → semiweekly.'},
-{d:'E',q:'Semiweekly Wednesday/Thursday/Friday payday — deposit by?',o:['Friday','Following Monday','Following Wednesday','Following Friday'],c:2,e:'Wed/Thu/Fri payday → following Wednesday deposit. Sat/Sun/Mon/Tue payday → following Friday. Ensures at least 3 business days.'},
-{d:'E',q:'Lookback period for 2026 tax year?',o:['All of 2024','July 1, 2024 through June 30, 2025','All of 2025','January-June 2025'],c:1,e:'Lookback period = July 1 of two years prior through June 30 of prior year. For 2026: July 1, 2024 – June 30, 2025.'},
-{d:'E',q:'Form 941 ten-day extension condition?',o:['Always available','Requested in writing','All required deposits made on time AND in full during the quarter','Available for small employers only'],c:2,e:'Extension from regular due date to ten days later (e.g., April 30 → May 10) if ALL deposits were timely and in full during the quarter.'},
-{d:'E',q:'W-2 due to employees?',o:['December 31','January 31','February 28','April 15'],c:1,e:'January 31. Also January 31 to SSA. Electronic file threshold lowered to 10+ returns total (W-2s + 1099s combined) for 2023 returns onward.'},
-{d:'E',q:'W-2 Box 12 Code D is:',o:['Traditional 401(k) elective deferral','Roth 401(k)','HSA','Adoption benefits'],c:0,e:'Code D — traditional 401(k). Other key codes: AA Roth 401(k), W HSA, T adoption, C GTL >$50K, DD employer health coverage cost.'},
-{d:'E',q:'W-2 Box 12 Code DD is:',o:['Adoption benefits','Cost of employer-sponsored health coverage (informational)','Disability insurance','Dependent care'],c:1,e:'Code DD — total cost of employer-sponsored health coverage. ACA reporting. Informational only. Does not affect tax.'},
-{d:'E',q:'W-2 Box 12 Code C is:',o:['Cafeteria plan','GTL coverage over $50,000','Catch-up contributions','Compensation'],c:1,e:'Code C — Cost of group-term life insurance coverage over $50,000. Subject to FICA, exempt FITW and FUTA.'},
-{d:'E',q:'Late deposit penalty for 6-15 days late?',o:['2%','5%','10%','15%'],c:1,e:'Penalty schedule: 2% (1-5 days), 5% (6-15 days), 10% (16+ days), 15% (after IRS notice). Plus interest from original due date.'},
-{d:'E',q:'Form 941-X — refund claim statute of limitations?',o:['1 year','2 years from tax paid','3 years from filing OR 2 years from tax paid, whichever later','5 years'],c:2,e:'Refund claim: 3 years from original 941 filing, or 2 years from tax paid, whichever later. Underpayments have 3 years generally with extensions for fraud.'},
-{d:'E',q:'When does a 941-X typically travel with a W-2c?',o:['Always','When error affects both quarterly 941 and annual W-2 — IRS and SSA cross-reference','Only for terminations','Quarterly only'],c:1,e:'IRS/SSA cross-reference via CAWR. Filing one without the other creates mismatch and a CAWR letter. File both when underlying error affects each.'},
-{d:'E',q:'W-2 Box 1 vs Box 3 — typical difference?',o:['Box 1 and Box 3 always equal','Box 1 excludes traditional 401(k); Box 3 doesn\u0027t exclude 401(k) but is capped at SS wage base','Box 1 is gross','Box 3 is net'],c:1,e:'Box 1: gross minus Section 125 minus 401(k). Box 3: gross minus Section 125 only, capped at SS wage base. Box 5 = same as Box 3 but no cap.'},
-{d:'E',q:'1099-NEC due to recipient and IRS?',o:['Recipient Jan 31, IRS Feb 28','Both January 31','Both Feb 28','Recipient Feb 28, IRS March 31'],c:1,e:'1099-NEC: BOTH dates are January 31. 1099-MISC: recipient Jan 31, IRS Feb 28 (paper) or March 31 (electronic).'},
-{d:'E',q:'Electronic filing threshold for information returns (2023+)?',o:['10 returns total','100','250','None'],c:0,e:'IRS reduced e-file threshold from 250 to 10 effective tax year 2023. Counts all returns combined (W-2s, 1099s, etc.).'},
-{d:'E',q:'Form 945 reports:',o:['FICA','Non-payroll federal income tax withholding','State tax','FUTA'],c:1,e:'Form 945 — Annual Return of Withheld Federal Income Tax on non-payroll payments (pensions, gambling, backup withholding). Due January 31.'},
-{d:'E',q:'Box 12 Code AA is:',o:['Traditional 401(k)','Roth 401(k)','HSA','Adoption'],c:1,e:'AA — Roth 401(k). Other Roth codes: BB Roth 403(b), EE Roth 457(b). Traditional counterparts: D, E, G respectively.'},
-{d:'E',q:'Box 12 Code W is:',o:['Wages','HSA contributions (employee + employer)','Wealth tax','Withholding'],c:1,e:'Code W reports total HSA contributions (employee + employer) made through Section 125. Total annual contribution shown.'},
-{d:'E',q:'Box 12 Code T is:',o:['Tips','Adoption benefits','Trust fund','Transit'],c:1,e:'Code T — employer-provided adoption benefits. Adoption assistance is exempt FITW only, subject to FICA and FUTA — major Section 125 exception.'},
-{d:'E',q:'Federal employment tax deposits use which system?',o:['Mail check','EFTPS (Electronic Federal Tax Payment System)','Bank wire','Cash'],c:1,e:'EFTPS is the federal electronic deposit system. Required for federal employment tax deposits. State systems vary by state.'},
-{d:'E',q:'Form 940 reports:',o:['Quarterly FICA','Annual FUTA','State tax','Local tax'],c:1,e:'Form 940 — Employer\u0027s Annual Federal Unemployment Tax Return. Due January 31. Schedule A required for multi-state or credit reduction state employers.'},
-{d:'E',q:'1095-C ACA form is filed by:',o:['All employers','Applicable Large Employers (50+ FTEs)','Self-insured plans only','Employees'],c:1,e:'1095-C — required of ALEs under ACA Section 6056. ALE = 50+ full-time equivalents. Reports health coverage offered to full-time employees. Due to employees by January 31.'},
-{d:'E',q:'Semiweekly Monday payday — deposit by?',o:['Next Wednesday','Next Friday','Same week Wednesday','Following Monday'],c:1,e:'Sat/Sun/Mon/Tue payday → following Friday. Mon payday → upcoming Friday. The split ensures 3+ business days between payday and deposit.'},
-{d:'E',q:'Late deposit penalty after first IRS notice?',o:['10%','15%','25%','50%'],c:1,e:'15% after IRS first sends notice and deposits not made within 10 days. Highest tier of the late deposit penalty schedule.'},
-{d:'E',q:'Form 941-X — two checkbox options?',o:['Approve or deny','Adjusted return (apply to current quarter) OR Claim for refund','Increase or decrease','State or federal'],c:1,e:'Adjusted return: apply correction to current quarter (employer owes additional tax now or claims credit). Claim for refund: request IRS issue refund check.'},
-{d:'E',q:'W-2 Box 4 reports:',o:['Federal income tax','Social Security tax withheld','Medicare tax','State tax'],c:1,e:'Box 4 — Social Security tax withheld. Box 2 — federal income tax withheld. Box 6 — Medicare tax withheld (includes Additional Medicare).'},
-{d:'E',q:'W-2 Box 5 reports:',o:['Wages, tips, etc. for FITW','Social Security wages','Medicare wages (no cap)','Allocated tips'],c:2,e:'Box 5 — Medicare wages and tips. No cap. Includes GTL imputed income over $50K and other items in Medicare base but not necessarily SS base or FITW.'},
-{d:'E',q:'Form W-3c is:',o:['New W-2 form','Transmittal for W-2c corrections to SSA','Quarterly form','Internal form'],c:1,e:'W-3c — transmittal that summarizes W-2c filings sent to SSA. Always accompanies W-2c filings. Like W-3 transmits W-2s, W-3c transmits W-2c corrections.'},
-{d:'E',q:'Form 941 Q3 due date?',o:['April 30','July 31','October 31','January 31'],c:2,e:'Q3 (July-September): October 31. Q4 (Oct-Dec): January 31. With 10-day extension if all deposits timely.'},
-{d:'E',q:'Box 12 Code G is:',o:['Traditional 401(k)','Traditional 403(b)','Traditional 457(b)','Gross income'],c:2,e:'Code G — Traditional 457(b) elective deferral. D = 401(k). E = 403(b). G = 457(b). The traditional series. Roth: AA, BB, EE respectively.'},
-
-// === DOMAIN F — 30 questions ===
-{d:'F',q:'CAWR stands for:',o:['Compliance Audit With Reconciliation','Combined Annual Wage Reporting','Corporate Audit Wages Report','Combined Audit Workers Return'],c:1,e:'CAWR = Combined Annual Wage Reporting. Automated IRS/SSA matching of W-2 totals to four 941 totals per employer per year.'},
-{d:'F',q:'CAWR mismatch response window?',o:['10 days','30 days','45 days','90 days'],c:2,e:'45 days from receipt of CAWR letter (typically Letter 98C) to respond with reconciliation and supporting documentation.'},
-{d:'F',q:'Most common payroll audit finding?',o:['Late deposits','Worker misclassification','Recordkeeping','State tax'],c:1,e:'Misclassification is the single most common audit finding across IRS, DOL, and state audits. Multi-year retroactive liability, class action exposure.'},
-{d:'F',q:'IRS payroll tax audit standard lookback?',o:['1 year','3 years (standard); longer for fraud or substantial understatement','5 years','10 years'],c:1,e:'Standard: 3 years from original 941. Six years for substantial understatement. No limit for fraud.'},
-{d:'F',q:'DOL wage-and-hour audit lookback (non-willful)?',o:['1 year','2 years','3 years','5 years'],c:1,e:'2 years non-willful. 3 years willful. Plus liquidated damages equal to back wages (doubles bill) unless good faith defense.'},
-{d:'F',q:'DOL liquidated damages?',o:['25% of back wages','50% of back wages','Equal to back wages (doubles total)','Triple back wages'],c:2,e:'Liquidated damages equal back wages — effectively doubles the bill — unless employer shows good faith reliance on a reasonable belief that the practice was lawful.'},
-{d:'F',q:'SSA no-match letter means:',o:['Employee unauthorized to work','Name/SSN combination does not match SSA records (NOT determination of work auth)','Termination required','Employer fined'],c:1,e:'No-match means data does not match — could be typo, marriage name change, identity theft. Adverse action based solely on no-match creates discrimination liability.'},
-{d:'F',q:'Audit prep — what is the recommended approach to auditor communication?',o:['Multiple staff respond independently','Single point of contact coordinates all auditor requests','Refuse to communicate','Email only'],c:1,e:'Single point of contact: prevents inconsistent responses, allows document review before disclosure, maintains request log, supports counsel involvement.'},
-{d:'F',q:'Strongest single audit trail control?',o:['Manager review of every payroll','Individual user accounts (no shared logins) with logged before/after values','Manual logs','Bank reconciliation'],c:1,e:'Shared user accounts (e.g., "payroll1") obscure who made changes. Individual accounts with comprehensive audit logs of every change are the strongest single control.'},
-{d:'F',q:'Form 941-X — for refund claim, statute is:',o:['1 year','3 years from filing, OR 2 years from tax paid, whichever later','Indefinite','Year of error'],c:1,e:'Refund claim: 3 years from original 941, or 2 years from tax paid, whichever later. Documentation supporting the correction is essential.'},
-{d:'F',q:'Gift card given to employee — tax treatment?',o:['De minimis if small','Always fully taxable, never de minimis','Tax-free if under $25','Subject to FUTA only'],c:1,e:'Cash and cash equivalents (including gift cards) are NEVER de minimis. Always fully taxable regardless of amount. Frequent audit finding.'},
-{d:'F',q:'Spouse travel paid by employer — typical tax treatment?',o:['Always tax-free','Imputed income unless spouse\u0027s presence had bona fide business purpose','Always taxable to spouse','Subject to FICA only'],c:1,e:'Cost imputed to employee unless spouse\u0027s presence served a real business purpose. Casual presence at meals doesn\u0027t qualify. Active business role might.'},
-{d:'F',q:'Section 530 relief requires:',o:['Just consistent treatment','Reasonable basis + consistent treatment + all 1099s filed','30+ year history','Worker consent'],c:1,e:'All three prongs: reasonable basis (prior audit, industry practice, court case), consistent treatment of similar workers, all required 1099s filed.'},
-{d:'F',q:'Litigation hold is:',o:['IRS escalation','Suspending normal record destruction when litigation reasonably anticipated','Court approval','Bankruptcy hold'],c:1,e:'When litigation is reasonably anticipated, normal destruction must be suspended. Failure can result in spoliation sanctions (adverse jury instructions, dismissal).'},
-{d:'F',q:'Tip credit notice — required when?',o:['At year-end','Before taking the credit, in writing to tipped employees','Annually only','Not required'],c:1,e:'Employer must provide written notice to tipped employees before taking the credit. Failure forfeits the credit — employer must pay full minimum wage in cash.'},
-{d:'F',q:'IRS audit Information Document Request (IDR) is:',o:['Optional','Formal IRS request listing documents needed for audit','Sent quarterly','State document'],c:1,e:'IDR is the formal IRS document request. Initiates audit document gathering. Response usually has a deadline.'},
-{d:'F',q:'Audit appeals — timeline to file protest after audit report?',o:['10 days','30 days','60 days','None'],c:1,e:'30 days to file protest with IRS Office of Appeals after receiving the audit report (Notice of Deficiency).'},
-{d:'F',q:'Common cause of CAWR mismatch?',o:['Random IRS error','W-2c filed without matching 941-X (or vice versa)','Bank error','Software bug'],c:1,e:'CAWR mismatches usually trace to: 1) one amendment filed without the other, 2) third-party sick pay differences, 3) GTL imputed income, 4) typos in EIN or filing.'},
-{d:'F',q:'Employee achievement award (non-qualified plan) — exclusion limit?',o:['$0','$400 per year','$1,600','$5,250'],c:1,e:'$400 per employee per year non-qualified plan. $1,600 qualified plan with written nondiscriminatory program. Cash never qualifies regardless.'},
-{d:'F',q:'Backup withholding rate?',o:['10%','22%','24%','37%'],c:2,e:'24% federal backup withholding when 1099 payee fails to provide correct TIN or IRS notifies of mismatch. Reported on Form 945.'},
-{d:'F',q:'Donning and doffing time — compensable?',o:['Never','Yes, in industries where ruled compensable (e.g., meatpacking)','Only if over 15 minutes','Only for exempt employees'],c:1,e:'Industries where putting on/taking off required gear is integral to the job (meatpacking, certain manufacturing, etc.) have had donning/doffing ruled compensable under FLSA.'},
-{d:'F',q:'Audit findings — common executive comp issue?',o:['401(k) limits','Section 409A compliance failures, golden parachutes, NQDC missteps','Workers comp','Workplace safety'],c:1,e:'Executive compensation audit areas: Section 409A (non-qualified deferred comp), golden parachutes, equity comp timing, missed FICA on NQDC at vesting.'},
-{d:'F',q:'Quarterly 941-to-GL reconciliation purpose?',o:['Internal control','Verify 941 totals match payroll register totals and GL — catch errors before filing','Tax planning','Audit defense'],c:1,e:'Sum payroll registers, compare to 941 line items, compare to GL payroll activity, compare to deposits made. Any discrepancy must be resolved before filing.'},
-{d:'F',q:'Best preventive control for CAWR mismatches?',o:['Wait for letter','Reconcile four 941s to W-3 before filing W-2s — catch mismatches early','Pay penalties','Lobby IRS'],c:1,e:'Reconcile annually before filing W-2s: sum four 941s, compare to W-3 totals line by line. Catch typos and mismatches before filing — avoids the spring CAWR letter.'},
-{d:'F',q:'Spoliation sanctions can include:',o:['Just a fine','Adverse jury instructions, monetary sanctions, possible case dismissal','Imprisonment','None'],c:1,e:'Failure to preserve evidence (litigation hold violation) can lead to severe judicial sanctions. Strong reason to implement holds promptly when litigation is anticipated.'},
-{d:'F',q:'When does fluctuating workweek method fail in an audit?',o:['When salary fluctuates with hours, OR hours don\u0027t go below 40, OR understanding not documented','Always','Only with bonus pay','Never'],c:0,e:'FWW requires: fixed salary, hours that fluctuate above AND below 40, mutual understanding documented, and additional 0.5x premium. Any failure = potential retroactive class liability.'},
-{d:'F',q:'Off-the-clock work — common audit issue?',o:['Auto-deducted meal periods when employees worked through','OT calculation','Wage rate','Filing status'],c:0,e:'Common off-the-clock issues: auto-deducted lunches actually worked, pre-shift setup, post-shift cleanup, required training time, donning/doffing not paid.'},
-{d:'F',q:'Internal vs external audit — internal audit purpose?',o:['Same as external','Proactive review by company team — catch issues before external scrutiny','Required by IRS','Backup to external'],c:1,e:'Internal audits are proactive. Catch issues before external auditors, regulators, or class action lawyers find them. Findings still must be addressed.'},
-{d:'F',q:'Domestic partner benefits — federal tax treatment?',o:['Same as spouse','Imputed income (taxable for federal); some states differ','Tax-free','State tax only'],c:1,e:'For federal purposes, domestic partner is not a tax dependent unless meeting Section 152 definition. Employer-paid premiums for DP = imputed income subject to all four federal taxes.'},
-{d:'F',q:'Audit prep checklist should include:',o:['Just registers','Payroll registers + 941s + 940s + W-2s + W-4s + I-9s + time records + deposit evidence + GL entries + reconciliations + policies + 1099s + SOC reports + prior audit responses','Just W-2s','Just policies'],c:1,e:'Comprehensive prep saves the audit. Have everything ready before the auditor arrives: payroll documentation, supporting records, controls evidence, reconciliations, and prior audit history.'},
-
-// === DOMAIN G — 30 questions ===
-{d:'G',q:'Debits and credits — basic rule?',o:['Debits decrease everything','Debits increase assets and expenses, credits increase liabilities/equity/revenue','Debits and credits are equivalent','Credits decrease all'],c:1,e:'Debits ↑ assets and expenses, ↓ liabilities/equity/revenue. Credits do the opposite. Every journal entry must have equal debits and credits.'},
-{d:'G',q:'Wages Expense account — normal balance?',o:['Credit','Debit','Either','Net'],c:1,e:'Wages Expense is an expense account. Normal balance = debit. Increased by debits when payroll is recorded.'},
-{d:'G',q:'FITW Payable — normal balance?',o:['Debit','Credit (liability)','Asset','Zero'],c:1,e:'FITW Payable is a liability account. Normal balance = credit. Credited when payroll recorded (tax withheld). Debited when deposited to IRS.'},
-{d:'G',q:'GAAP requires which basis of accounting?',o:['Cash','Accrual','Either','Hybrid'],c:1,e:'GAAP requires accrual basis for most businesses. Required by SEC for public companies. Matches expenses to the period earned, not the period paid.'},
-{d:'G',q:'Period-end accrual when workweek crosses month-end — purpose?',o:['Avoid tax','Recognize wages in the period earned (GAAP matching principle)','Required by IRS','Optional'],c:1,e:'Workweek 6/24-6/30 paid 7/5: accrue June 30 to put June\u0027s wages in June\u0027s books. Reverse July 1. Actual payroll posts July 5. Net effect: correct period for each.'},
-{d:'G',q:'Reversing entry timing?',o:['Same day as accrual','Start of next period','Year-end','Quarterly'],c:1,e:'Start of next period (e.g., July 1 if June 30 accrual). Reverses the accrual so actual payroll posts normally without double-counting.'},
-{d:'G',q:'Employer 401(k) match — wages?',o:['Yes, subject to FICA','No, not wages, not subject to payroll tax','Yes, FITW only','Yes, FUTA only'],c:1,e:'Employer match flows through plan, not employee wages. Not on W-2 as compensation. Not subject to FITW, FICA, or FUTA. Benefits Expense, not Wages Expense.'},
-{d:'G',q:'Standard payroll entry — gross wages side credits include:',o:['Just Wages Payable','FITW Payable, FICA Payable (employee), other employee deduction liabilities, and Wages Payable for net','Just FITW','Just Cash'],c:1,e:'Debit Wages Expense for gross. Credit each employee withholding liability (FITW, FICA, health, 401(k)) and Wages Payable for net.'},
-{d:'G',q:'Employer-side payroll tax entry — typical?',o:['No entry needed','Debit Payroll Tax Expense, credit employer FICA/FUTA/SUTA payables','Direct to cash','Year-end only'],c:1,e:'Separate entry for employer-side: Debit Payroll Tax Expense (and Benefits Expense for employer benefits). Credit corresponding payable accounts.'},
-{d:'G',q:'Gross $10,000, deductions $2,000 → Cash payment journal entry?',o:['Debit Wages Expense $8,000','Debit Wages Payable $8,000, Credit Cash $8,000','Debit Cash $8,000','Credit Wages Expense'],c:1,e:'Wages Payable was credited at payroll computation. Now paying: Debit Wages Payable, Credit Cash for the net. Removes the liability.'},
-{d:'G',q:'Tax deposit to IRS journal entry?',o:['Debit Payroll Tax Expense','Debit FITW Payable, FICA Payable; Credit Cash','Debit Cash','No entry'],c:1,e:'Tax deposit removes the liability and reduces cash. Debit the payable accounts. Credit Cash.'},
-{d:'G',q:'Burdened rate is:',o:['Same as hourly rate','Total cost (wages + employer payroll tax + employer benefits) ÷ hours','Annual salary','OT premium rate'],c:1,e:'Burdened rate reflects fully-loaded cost to employer. Used for project pricing, customer billing, and management decision support.'},
-{d:'G',q:'Bank reconciliation — frequency?',o:['Annually','Monthly minimum','Quarterly','Never'],c:1,e:'Monthly minimum. Match payroll bank statement to GL payroll cash. Identify outstanding checks, unexpected debits/credits. Age outstanding checks for escheatment.'},
-{d:'G',q:'PTO accrual — what is it?',o:['Tax','Liability for unused paid time off earned but not taken','Cash basis only','Year-end only'],c:1,e:'PTO accrual: Debit Wages Expense (sometimes via Vacation Expense), Credit Accrued Vacation Payable. Recognizes earned but unused time off.'},
-{d:'G',q:'Three big payroll reconciliations?',o:['Just bank','Monthly bank, quarterly 941-to-GL, annual W-2-to-four-941s (CAWR check)','Just W-2','Just GL'],c:1,e:'Bank monthly, 941 to GL quarterly, W-2 to four 941s annually before filing W-2. Each catches different errors.'},
-{d:'G',q:'Biggest payroll accounting failure?',o:['Late deposits','Letting reconciliation differences accumulate over time','Wrong rate','Wrong form'],c:1,e:'Unreconciled differences compound period to period. By year-end, can become material. Avoidable with monthly discipline.'},
-{d:'G',q:'$2,000 wages, $200 FITW, $124 SS, $29 Medicare → Net pay?',o:['$2,000','$1,847','$1,647','$1,353'],c:2,e:'$2,000 − $200 − $124 − $29 = $1,647 net pay.'},
-{d:'G',q:'Gross $10,000, $1,000 FITW, $765 FICA (combined), $500 pre-tax medical, $400 401(k) → Net pay?',o:['$7,000','$7,335','$8,100','$10,000'],c:1,e:'$10,000 − $1,000 − $765 − $500 − $400 = $7,335 net pay.'},
-{d:'G',q:'Where does employer FICA show up?',o:['Wages Expense','Payroll Tax Expense (separate from Wages Expense)','Net pay','Cash directly'],c:1,e:'Employer-side payroll tax is Payroll Tax Expense — separate expense account from Wages Expense. Credit corresponding payables until deposited.'},
-{d:'G',q:'GL impact of issuing W-2s?',o:['Significant','None — W-2 is informational; underlying wages/taxes already in GL','Reverses payroll','Triggers depositing'],c:1,e:'W-2 is an information return reporting prior-year activity. Doesn\u0027t change GL. The wages, taxes, and benefits were already posted via period payrolls.'},
-{d:'G',q:'Cash basis vs accrual basis difference?',o:['Same thing','Cash recognizes when cash moves; accrual recognizes when earned','Cash is GAAP','Accrual is tax basis'],c:1,e:'Cash: recognize expense when cash leaves bank. Accrual: recognize when employee earns (work performed). GAAP requires accrual for most businesses.'},
-{d:'G',q:'Cost allocation by direct charge — what drives it?',o:['Manager guess','Hours-based via time tracking, allocated to project codes','Random','Annual budget'],c:1,e:'Time entered against project codes; payroll system allocates wages by hours to each cost center or project. Common in professional services and construction.'},
-{d:'G',q:'Garnishment $200 deducted from gross — journal entry impact?',o:['Reduces Wages Expense','Reduces net pay, credits Garnishment Payable until remitted','No GL impact','Credits Cash directly'],c:1,e:'Like any deduction, reduces net pay. Credit Garnishment Payable (liability) until remitted to court/agency. Debit Garnishment Payable, Credit Cash on remittance.'},
-{d:'G',q:'Why credit Wages Payable instead of Cash directly during payroll computation?',o:['Optional preference','Net pay isn\u0027t paid simultaneously with computation; use Wages Payable as clearing','Tax reasons','GAAP requires'],c:1,e:'Payroll computed (e.g., Tuesday) but cash leaves bank later (e.g., Friday ACH). Use Wages Payable as clearing liability until cash actually moves. Then debit Wages Payable, credit Cash.'},
-{d:'G',q:'Stale check write-off — journal entry?',o:['No entry','Debit Wages Payable (remove liability), Credit Cash or escheatment payable','Debit Cash','Credit Wages Expense'],c:1,e:'Remove the liability. If escheatment applies, move to Unclaimed Property Payable until remitted to state. If true reversal, credit Cash.'},
-{d:'G',q:'Payroll register vs general ledger?',o:['Same thing','Register is detailed by employee/period; GL is summarized by account','Register replaces GL','Different software'],c:1,e:'Register: detailed transaction record by employee, period, deduction. GL: summarized financial impact rolled up by account. Reconcile register to GL each period.'},
-{d:'G',q:'When are PTO accruals required?',o:['Never','When the employer has a policy granting PTO and the right to it is earned (GAAP)','Only when paid out','Quarterly'],c:1,e:'Under GAAP, when an employee has an earned right to PTO (vested or near-vested), the employer must accrue the liability. Reflects the obligation, not just future payment.'},
-{d:'G',q:'Workers comp premium — accounting treatment?',o:['Wages','Expense (Workers Comp Insurance Expense), often prepaid and amortized','Asset','Liability only'],c:1,e:'Workers comp premium is an operating expense. Often paid in advance and amortized over the policy period via Prepaid Insurance reducing as time passes.'},
-{d:'G',q:'Why is the reconciliation a "detective" control?',o:['It prevents errors','It catches errors after they happen by comparing sources','Internal only','Manual only'],c:1,e:'Reconciliation compares two or more sources of the same data, catching errors that occurred. Preventive controls block errors upfront; corrective controls fix them.'},
-{d:'G',q:'Quarterly 941-to-GL reconciliation — what to check?',o:['Just totals','Wages = Line 2; FITW = Line 3; SS wages × 12.4% = Line 5a Col 2; Medicare wages × 2.9% = Line 5c Col 2','Just FICA','Just FUTA'],c:1,e:'Sum payroll registers and verify each maps to corresponding 941 line. Catches issues like missing GTL imputed income, missed bonuses, or 941 entry errors before filing.'}
-];
-
-// State
-const STORAGE_KEYS={
-  progress:'cppQuizProgressV2',
-  scores:'cppQuizScoreHistoryV2',
-  dark:'cppQuizDarkModeV2'
-};
-const MOCK_LIMIT_SECONDS=4*60*60;
-let timerInterval=null;
-
-const state={
-  mode:'home',
-  quiz:null,
-  selections:[],
-  idx:0,
-  submitted:false,
-  reviewFilter:'all',
-  startedAt:null,
-  timeLimitSeconds:null,
-  scoreRecorded:false
-};
-
-function safeParse(json,fallback){try{return JSON.parse(json)||fallback;}catch(e){return fallback;}}
-function getSavedProgress(){return safeParse(localStorage.getItem(STORAGE_KEYS.progress),null);}
-function saveProgress(){
-  if(state.mode!=='quiz'||!state.quiz)return;
-  localStorage.setItem(STORAGE_KEYS.progress,JSON.stringify({
-    quiz:state.quiz,selections:state.selections,idx:state.idx,startedAt:state.startedAt,timeLimitSeconds:state.timeLimitSeconds
-  }));
-}
-function clearProgress(){localStorage.removeItem(STORAGE_KEYS.progress);}
-function getScoreHistory(){return safeParse(localStorage.getItem(STORAGE_KEYS.scores),[]);}
-function saveScoreRecord(){
-  if(!state.quiz||state.scoreRecorded)return;
-  const total=state.quiz.questions.length;
-  let correct=0;
-  state.quiz.questions.forEach((q,i)=>{if(state.selections[i]===q.c)correct++;});
-  const label=state.quiz.type==='domain'?'Domain '+state.quiz.domain:(state.quiz.type==='combined'?'Combined quiz':'Mock exam v'+state.quiz.version);
-  const history=getScoreHistory();
-  history.unshift({date:new Date().toLocaleString(),label,correct,total,pct:Math.round((correct/total)*100)});
-  localStorage.setItem(STORAGE_KEYS.scores,JSON.stringify(history.slice(0,25)));
-  state.scoreRecorded=true;
-}
-function applyDarkMode(){document.body.classList.toggle('dark-mode',localStorage.getItem(STORAGE_KEYS.dark)==='1');}
-function toggleDarkMode(){localStorage.setItem(STORAGE_KEYS.dark,document.body.classList.contains('dark-mode')?'0':'1');applyDarkMode();}
-function formatTime(sec){sec=Math.max(0,Math.floor(sec));const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
-function remainingSeconds(){if(!state.timeLimitSeconds||!state.startedAt)return null;return state.timeLimitSeconds-Math.floor((Date.now()-state.startedAt)/1000);}
-function updateTimerDisplay(){
-  const el=document.getElementById('timer-pill');
-  const rem=remainingSeconds();
-  if(el&&rem!==null)el.textContent='Time left: '+formatTime(rem);
-  if(state.mode==='quiz'&&state.quiz&&state.quiz.type==='mock'&&rem!==null&&rem<=0){submitQuiz(true);}
-}
-function startTimer(){
-  if(timerInterval)clearInterval(timerInterval);
-  timerInterval=setInterval(updateTimerDisplay,1000);
-  updateTimerDisplay();
-}
-function stopTimer(){if(timerInterval){clearInterval(timerInterval);timerInterval=null;}}
-applyDarkMode();
-
-function $(id){return document.getElementById(id);}
-
-function shuffle(arr){
-  const a=arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
-}
-
-// Seeded shuffle for stable version subsets
-function seededShuffle(arr,seed){
-  const a=arr.slice();
-  let s=seed;
-  for(let i=a.length-1;i>0;i--){
-    s=(s*9301+49297)%233280;
-    const j=Math.floor((s/233280)*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
-}
-
-function buildDomainQuiz(d){
-  const pool=Q.filter(q=>q.d===d);
-  return shuffle(pool).slice(0,Math.min(pool.length,30));
-}
-
-function buildCombinedQuiz(){
-  // 60 questions weighted by domain percentages
-  const counts={A:15,B:9,C:12,D:7,E:6,F:6,G:5}; // sums to 60
-  let combined=[];
-  Object.keys(counts).forEach(d=>{
-    const pool=Q.filter(q=>q.d===d);
-    combined=combined.concat(shuffle(pool).slice(0,counts[d]));
-  });
-  return shuffle(combined);
-}
-
-function buildMockExam(version){
-  // 190 questions weighted: A:46, B:30, C:38, D:23, E:19, F:17, G:17
-  let exam=[];
-  DOMAINS.forEach(dom=>{
-    const pool=Q.filter(q=>q.d===dom.id);
-    // Use seeded shuffle by version to get a stable subset per version
-    const seeded=seededShuffle(pool,version*1000+dom.id.charCodeAt(0));
-    const subset=seeded.slice(0,Math.min(pool.length,dom.mock));
-    exam=exam.concat(subset);
-  });
-  // Now shuffle the full exam randomly for in-session order
-  return shuffle(exam);
-}
-
-function startQuiz(type,arg){
-  state.mode='quiz';
-  state.idx=0;
-  state.submitted=false;
-  if(type==='domain'){
-    state.quiz={type:'domain',domain:arg,questions:buildDomainQuiz(arg)};
-  }else if(type==='combined'){
-    state.quiz={type:'combined',questions:buildCombinedQuiz()};
-  }else if(type==='mock'){
-    state.quiz={type:'mock',version:arg,questions:buildMockExam(arg)};
-  }
-  state.selections=new Array(state.quiz.questions.length).fill(null);
-  state.startedAt=Date.now();
-  state.timeLimitSeconds=type==='mock'?MOCK_LIMIT_SECONDS:null;
-  state.scoreRecorded=false;
-  saveProgress();
-  startTimer();
-  render();
-  window.scrollTo(0,0);
-}
-
-function submitQuiz(autoExpired){
-  state.submitted=true;
-  state.mode='results';
-  state.reviewFilter='all';
-  clearProgress();
-  stopTimer();
-  saveScoreRecord();
-  render();
-  if(autoExpired)alert('Time is up. Your mock exam has been submitted.');
-  window.scrollTo(0,0);
-}
-
-function renderHome(){
-  stopTimer();
-  const saved=getSavedProgress();
-  const history=getScoreHistory();
-  let html='<div class="top-actions"><button class="mini-btn" id="toggle-dark">Toggle dark mode</button>'+(history.length?'<button class="mini-btn" id="clear-scores">Clear score history</button>':'')+'</div>';
-  if(saved){
-    const label=saved.quiz.type==='domain'?'Domain '+saved.quiz.domain:(saved.quiz.type==='combined'?'Combined quiz':'Mock exam v'+saved.quiz.version);
-    const answered=saved.selections.filter(x=>x!==null).length;
-    html+='<div class="notice"><strong>Saved progress found:</strong> '+label+' · '+answered+'/'+saved.quiz.questions.length+' answered <div style="margin-top:8px;display:flex;gap:8px;"><button class="primary-btn" id="resume-quiz">Resume</button><button class="nav-btn" id="discard-progress">Discard</button></div></div>';
-  }
-  if(history.length){
-    html+='<div class="score-history"><strong>Recent scores</strong><br>'+history.slice(0,5).map(r=>r.date+' — '+r.label+': '+r.correct+'/'+r.total+' ('+r.pct+'%)').join('<br>')+'</div>';
-  }
-  html+='<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:1.25rem;">';
-  DOMAINS.forEach(d=>{
-    const count=Q.filter(q=>q.d===d.id).length;
-    const quizSize=Math.min(count,30);
-    html+='<button class="card-btn" data-act="domain" data-arg="'+d.id+'">';
-    html+='<div class="top">Domain '+d.id+' &middot; '+d.pct+'% of exam</div>';
-    html+='<div class="mid">'+d.n+'</div>';
-    html+='<div class="bot">'+quizSize+' questions · randomized</div>';
-    html+='</button>';
-  });
-  html+='</div>';
-  html+='<h3 style="font-size:14px;margin:1.5rem 0 0.5rem;color:var(--color-text-secondary);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Combined</h3>';
-  html+='<div style="margin-bottom:1.25rem;">';
-  html+='<button class="card-btn" data-act="combined">';
-  html+='<div class="top">All domains</div>';
-  html+='<div class="mid">Combined quiz</div>';
-  html+='<div class="bot">60 questions, weighted by exam content · randomized</div>';
-  html+='</button>';
-  html+='</div>';
-  html+='<h3 style="font-size:14px;margin:1.5rem 0 0.5rem;color:var(--color-text-secondary);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Full mock exams</h3>';
-  html+='<p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 12px;">190 questions in 4 hours simulates the real CPP exam. Each version has a different question set; question order randomizes every attempt.</p>';
-  html+='<div style="display:grid;grid-template-columns:1fr;gap:8px;">';
-  [1,2,3].forEach(v=>{
-    html+='<button class="card-btn" data-act="mock" data-arg="'+v+'">';
-    html+='<div class="top">Version '+v+'</div>';
-    html+='<div class="mid">Full CPP mock exam</div>';
-    html+='<div class="bot">190 questions · randomized order every time</div>';
-    html+='</button>';
-  });
-  html+='</div>';
-  $('content').innerHTML=html;
-  if($('toggle-dark'))$('toggle-dark').onclick=()=>{toggleDarkMode();renderHome();};
-  if($('clear-scores'))$('clear-scores').onclick=()=>{localStorage.removeItem(STORAGE_KEYS.scores);renderHome();};
-  if($('discard-progress'))$('discard-progress').onclick=()=>{clearProgress();renderHome();};
-  if($('resume-quiz'))$('resume-quiz').onclick=()=>{
-    const saved=getSavedProgress();
-    if(!saved)return;
-    state.mode='quiz';state.quiz=saved.quiz;state.selections=saved.selections;state.idx=saved.idx||0;state.startedAt=saved.startedAt;state.timeLimitSeconds=saved.timeLimitSeconds;state.scoreRecorded=false;
-    startTimer();render();window.scrollTo(0,0);
-  };
-  document.querySelectorAll('[data-act]').forEach(b=>{
-    b.onclick=()=>{
-      const act=b.dataset.act;
-      const arg=b.dataset.arg?(act==='mock'?parseInt(b.dataset.arg):b.dataset.arg):null;
-      startQuiz(act,arg);
-    };
-  });
-}
-
-function renderQuiz(){
-  const q=state.quiz.questions[state.idx];
-  const total=state.quiz.questions.length;
-  const answered=state.selections.filter(s=>s!==null).length;
-  const pct=((state.idx+1)/total)*100;
-  let header='';
-  if(state.quiz.type==='domain'){
-    const dom=DOMAINS.find(d=>d.id===state.quiz.domain);
-    header='Domain '+state.quiz.domain+' &middot; '+dom.n;
-  }else if(state.quiz.type==='combined'){
-    header='Combined quiz';
-  }else{
-    header='Mock exam version '+state.quiz.version;
-  }
-  let html='<button class="nav-btn" id="back-home" style="margin-bottom:1rem;">&larr; Quiz menu</button>';
-  html+='<div class="qbar"><div><div style="font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;">'+header+'</div><div style="font-weight:500;margin-top:2px;">Question '+(state.idx+1)+' of '+total+'</div><div class="pbar"><div class="pfill" style="width:'+pct+'%"></div></div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">'+(state.quiz.type==='mock'?'<div class="timer-pill" id="timer-pill">Time left: '+formatTime(remainingSeconds())+'</div>':'')+'<div class="qbar-stat"><strong>'+answered+'</strong>/'+total+' answered</div></div></div>';
-  html+='<div class="qbody"><p class="qtxt">'+q.q+'</p><div class="qopts">';
-  q.o.forEach((opt,i)=>{
-    const isSel=state.selections[state.idx]===i;
-    const letter=String.fromCharCode(65+i);
-    html+='<button class="qopt'+(isSel?' sel':'')+'" data-opt="'+i+'"><span class="letter">'+letter+'</span><span>'+opt+'</span></button>';
-  });
-  html+='</div></div>';
-  html+='<div class="ctrl-row">';
-  html+='<button class="nav-btn" id="q-prev"'+(state.idx===0?' disabled':'')+'>← Previous</button>';
-  if(state.idx<total-1){
-    html+='<button class="nav-btn" id="q-next">Next →</button>';
-  }else{
-    html+='<button class="primary-btn" id="q-submit">Submit quiz</button>';
-  }
-  html+='</div>';
-  if(state.idx===total-1&&answered<total){
-    html+='<p style="font-size:12px;color:var(--color-text-tertiary);margin-top:8px;text-align:right;">'+(total-answered)+' question'+((total-answered)===1?'':'s')+' unanswered — these will count as wrong if submitted</p>';
-  }
-  $('content').innerHTML=html;
-  $('back-home').onclick=()=>{
-    if(answered>0){
-      if(!confirm('You\u0027ve answered '+answered+' question(s). Quitting will lose your progress. Continue?'))return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPP Study Guide</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --card: rgba(255, 255, 255, 0.14);
+      --card-strong: rgba(255, 255, 255, 0.22);
+      --text: #ffffff;
+      --muted: rgba(255, 255, 255, 0.76);
+      --border: rgba(255, 255, 255, 0.22);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+      --blue: #4f8cff;
+      --purple: #9b5cff;
+      --pink: #ff5fa2;
+      --green: #38d996;
+      --yellow: #ffd166;
     }
-    clearProgress();
-    stopTimer();
-    state.mode='home';
-    render();
-    window.scrollTo(0,0);
-  };
-  document.querySelectorAll('[data-opt]').forEach(b=>{
-    b.onclick=()=>{
-      state.selections[state.idx]=parseInt(b.dataset.opt);
-      saveProgress();
-      renderQuiz();
-    };
-  });
-  if($('q-prev'))$('q-prev').onclick=()=>{if(state.idx>0){state.idx--;saveProgress();renderQuiz();window.scrollTo(0,0);}};
-  if($('q-next'))$('q-next').onclick=()=>{if(state.idx<total-1){state.idx++;saveProgress();renderQuiz();window.scrollTo(0,0);}};
-  if($('q-submit'))$('q-submit').onclick=()=>submitQuiz(false);
-  saveProgress();
-  updateTimerDisplay();
-}
 
-function renderResults(){
-  const qs=state.quiz.questions;
-  const total=qs.length;
-  let correct=0;
-  const byDomain={};
-  DOMAINS.forEach(d=>{byDomain[d.id]={c:0,t:0};});
-  qs.forEach((q,i)=>{
-    byDomain[q.d].t++;
-    if(state.selections[i]===q.c){
-      correct++;
-      byDomain[q.d].c++;
+    * {
+      box-sizing: border-box;
     }
-  });
-  const pct=Math.round((correct/total)*100);
-  let header='';
-  if(state.quiz.type==='domain'){
-    const dom=DOMAINS.find(d=>d.id===state.quiz.domain);
-    header='Domain '+state.quiz.domain+' &middot; '+dom.n;
-  }else if(state.quiz.type==='combined'){
-    header='Combined quiz';
-  }else{
-    header='Mock exam version '+state.quiz.version;
-  }
-  let html='<button class="nav-btn" id="back-home" style="margin-bottom:1rem;">&larr; Quiz menu</button>';
-  html+='<div class="score-box">';
-  html+='<p style="font-size:11px;color:var(--color-text-secondary);letter-spacing:0.08em;text-transform:uppercase;margin:0 0 4px;">'+header+'</p>';
-  html+='<div class="score-num">'+correct+'<span style="font-size:24px;color:var(--color-text-secondary);font-weight:400;"> / '+total+'</span></div>';
-  html+='<div class="score-lbl">'+pct+'% correct</div>';
-  if(state.quiz.type==='mock'){
-    html+='<p style="font-size:11px;color:var(--color-text-secondary);margin-top:10px;">CPP passing scaled score is 300 of 500 · roughly 65-70% raw correct as a rough proxy</p>';
-  }
-  html+='</div>';
-  // Domain breakdown for combined and mock
-  if(state.quiz.type!=='domain'){
-    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;margin-bottom:1rem;">';
-    DOMAINS.forEach(d=>{
-      if(byDomain[d.id].t>0){
-        const dpct=byDomain[d.id].t>0?Math.round((byDomain[d.id].c/byDomain[d.id].t)*100):0;
-        html+='<div style="padding:10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);text-align:center;"><div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:2px;">'+d.id+'</div><div style="font-weight:500;font-size:14px;">'+byDomain[d.id].c+'/'+byDomain[d.id].t+'</div><div style="font-size:10px;color:var(--color-text-secondary);">'+dpct+'%</div></div>';
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 18%, rgba(79, 140, 255, 0.52), transparent 34%),
+        radial-gradient(circle at 82% 12%, rgba(255, 95, 162, 0.42), transparent 30%),
+        radial-gradient(circle at 70% 82%, rgba(56, 217, 150, 0.34), transparent 34%),
+        linear-gradient(135deg, #07111f 0%, #111827 44%, #261447 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 85%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      position: relative;
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 52px;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--pink));
+      box-shadow: 0 12px 30px rgba(79, 140, 255, 0.34);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+    }
+
+    .nav-links a {
+      padding: 9px 14px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 14px;
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .hero {
+      min-height: 74vh;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: center;
+      gap: 42px;
+      padding: 48px 0;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 13px;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(56, 217, 150, 0.7);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      70% { box-shadow: 0 0 0 12px rgba(56, 217, 150, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 217, 150, 0); }
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 820px;
+      font-size: clamp(46px, 8vw, 88px);
+      line-height: 0.92;
+      letter-spacing: -0.08em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #fff 0%, #b9d3ff 32%, #ffd6e8 64%, #d8fff0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      max-width: 640px;
+      margin: 22px 0 0;
+      font-size: clamp(17px, 2vw, 22px);
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      font-weight: 750;
+      transition: 0.22s ease;
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #101828;
+      box-shadow: 0 18px 45px rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-primary:hover,
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+    }
+
+    .btn-secondary {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      backdrop-filter: blur(16px);
+    }
+
+    .hero-panel {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 34px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.11);
+      backdrop-filter: blur(22px);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      top: -74px;
+      right: -48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(255, 209, 102, 0.55), rgba(255, 95, 162, 0.35));
+      filter: blur(4px);
+    }
+
+    .dashboard {
+      position: relative;
+      display: grid;
+      gap: 14px;
+    }
+
+    .dash-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .metric {
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .metric .num {
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+    }
+
+    .metric .lbl {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .visual-card {
+      min-height: 220px;
+      display: grid;
+      align-content: end;
+      gap: 12px;
+      padding: 22px;
+      border-radius: 28px;
+      background:
+        linear-gradient(135deg, rgba(79, 140, 255, 0.35), rgba(155, 92, 255, 0.25)),
+        rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      overflow: hidden;
+    }
+
+    .bars {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      height: 90px;
+    }
+
+    .bar {
+      flex: 1;
+      border-radius: 999px 999px 8px 8px;
+      background: linear-gradient(to top, var(--green), var(--yellow));
+      animation: floatBar 2.8s ease-in-out infinite;
+      opacity: 0.9;
+    }
+
+    .bar:nth-child(1) { height: 42%; animation-delay: 0s; }
+    .bar:nth-child(2) { height: 66%; animation-delay: 0.2s; }
+    .bar:nth-child(3) { height: 52%; animation-delay: 0.4s; }
+    .bar:nth-child(4) { height: 88%; animation-delay: 0.1s; }
+    .bar:nth-child(5) { height: 72%; animation-delay: 0.3s; }
+    .bar:nth-child(6) { height: 58%; animation-delay: 0.5s; }
+
+    @keyframes floatBar {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(0.88); }
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin: 24px 0 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      letter-spacing: -0.055em;
+    }
+
+    .section-head p {
+      max-width: 520px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .study-card {
+      position: relative;
+      min-height: 310px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transition: 0.25s ease;
+    }
+
+    .study-card:hover {
+      transform: translateY(-8px);
+      background: var(--card-strong);
+      border-color: rgba(255, 255, 255, 0.38);
+    }
+
+    .study-card::before {
+      content: "";
+      position: absolute;
+      inset: auto -40px -80px auto;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      opacity: 0.7;
+      filter: blur(2px);
+      transition: 0.25s ease;
+    }
+
+    .study-card:hover::before {
+      transform: scale(1.12);
+    }
+
+    .study-card.quiz::before {
+      background: radial-gradient(circle, rgba(79, 140, 255, 0.95), transparent 64%);
+    }
+
+    .study-card.readings::before {
+      background: radial-gradient(circle, rgba(255, 95, 162, 0.85), transparent 64%);
+    }
+
+    .study-card.flashcards::before {
+      background: radial-gradient(circle, rgba(56, 217, 150, 0.85), transparent 64%);
+    }
+
+    .icon {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+      border-radius: 20px;
+      font-size: 28px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .study-card h3 {
+      margin: 0 0 10px;
+      font-size: 26px;
+      letter-spacing: -0.04em;
+    }
+
+    .study-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .card-link {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      margin-top: 28px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.95);
+      color: #111827;
+      transition: 0.2s ease;
+    }
+
+    .study-card:hover .card-link {
+      transform: translateX(4px);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .feature {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--muted);
+      backdrop-filter: blur(16px);
+    }
+
+    .feature strong {
+      display: block;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+
+    footer {
+      margin-top: 44px;
+      padding: 28px 0 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .sparkle {
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      filter: blur(0.2px);
+      animation: sparkle 4s ease-in-out infinite;
+    }
+
+    .sparkle.one { width: 7px; height: 7px; top: 18%; left: 5%; }
+    .sparkle.two { width: 5px; height: 5px; top: 36%; right: 12%; animation-delay: 1.1s; }
+    .sparkle.three { width: 9px; height: 9px; bottom: 18%; left: 44%; animation-delay: 2s; }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.2; transform: scale(0.7); }
+      50% { opacity: 0.9; transform: scale(1.2); }
+    }
+
+    @media (max-width: 880px) {
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
       }
+
+      .nav-links {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 34px 0;
+      }
+
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .cards,
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 540px) {
+      .page {
+        width: min(100% - 22px, 1180px);
+      }
+
+      .nav-links {
+        border-radius: 22px;
+        flex-wrap: wrap;
+      }
+
+      .nav-links a {
+        flex: 1;
+        text-align: center;
+      }
+
+      .dash-top {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-panel {
+        border-radius: 26px;
+        padding: 14px;
+      }
+
+      .study-card {
+        min-height: 270px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="sparkle one"></div>
+  <div class="sparkle two"></div>
+  <div class="sparkle three"></div>
+
+  <main class="page">
+    <nav class="nav" aria-label="Main navigation">
+      <a class="brand" href="index.html" aria-label="CPP Study Guide home">
+        <span class="brand-mark">✓</span>
+        <span>CPP Study Guide</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="quizzes.html">Quizzes</a>
+        <a href="readings.html">Readings</a>
+        <a href="flashcards.html">Flashcards</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow"><span class="pulse"></span> Study smarter for the CPP exam</div>
+        <h1><span class="gradient-text">Master payroll concepts with confidence.</span></h1>
+        <p class="subtitle">
+          Your colorful, interactive study hub for practice quizzes, narrated readings, and quick-review flashcards.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="quizzes.html">Start Practice Quizzes →</a>
+          <a class="btn btn-secondary" href="#study-tools">Explore Study Tools</a>
+        </div>
+      </div>
+
+      <aside class="hero-panel" aria-label="Study progress preview">
+        <div class="dashboard">
+          <div class="dash-top">
+            <div class="metric">
+              <div class="num">7</div>
+              <div class="lbl">CPP exam domains</div>
+            </div>
+            <div class="metric">
+              <div class="num">190</div>
+              <div class="lbl">Mock exam questions</div>
+            </div>
+          </div>
+
+          <div class="visual-card">
+            <div class="bars" aria-hidden="true">
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+              <div class="bar"></div>
+            </div>
+            <div>
+              <strong>Track. Review. Repeat.</strong>
+              <p style="margin:6px 0 0;color:var(--muted);line-height:1.5;">
+                Jump between study modes and keep your preparation organized in one place.
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="study-tools" aria-labelledby="tools-title">
+      <div class="section-head">
+        <div>
+          <h2 id="tools-title">Choose your study mode</h2>
+        </div>
+        <p>
+          Pick the tool that matches your energy: test yourself, listen and read, or drill key terms.
+        </p>
+      </div>
+
+      <div class="cards">
+        <article class="study-card quiz">
+          <div>
+            <div class="icon">🧠</div>
+            <h3>Practice Quizzes</h3>
+            <p>
+              Take domain quizzes, combined reviews, and full-length mock exams with scoring and progress features.
+            </p>
+          </div>
+          <a class="card-link" href="quizzes.html">
+            Open quizzes <span>→</span>
+          </a>
+        </article>
+
+        <article class="study-card readings">
+          <div>
+            <div class="icon">🎧</div>
+            <h3>Readings</h3>
+            <p>
+              Review study material with read-aloud support so you can listen while you learn.
+            </p>
+          </div>
+          <a class="card-link" href="readings.html">
+            Open readings <span>→</span>
+          </a>
+        </article>
+
+        <article class="study-card flashcards">
+          <div>
+            <div class="icon">⚡</div>
+            <h3>Flashcards</h3>
+            <p>
+              Quickly reinforce important terms, formulas, rules, and payroll concepts.
+            </p>
+          </div>
+          <a class="card-link" href="flashcards.html">
+            Open flashcards <span>→</span>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <section class="features" aria-label="Study guide highlights">
+      <div class="feature">
+        <strong>Focused</strong>
+        Organized around CPP study activities.
+      </div>
+      <div class="feature">
+        <strong>Interactive</strong>
+        Hover effects and clear action paths.
+      </div>
+      <div class="feature">
+        <strong>Mobile-friendly</strong>
+        Designed to work on phones and desktops.
+      </div>
+      <div class="feature">
+        <strong>GitHub-ready</strong>
+        Uses simple links to your HTML files.
+      </div>
+    </section>
+
+    <footer>
+      Built for consistent CPP exam prep — quizzes, readings, and flashcards in one study hub.
+    </footer>
+  </main>
+
+  <script>
+    const cards = document.querySelectorAll(".study-card");
+
+    cards.forEach((card) => {
+      card.addEventListener("mousemove", (event) => {
+        const rect = card.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const rotateX = ((y / rect.height) - 0.5) * -6;
+        const rotateY = ((x / rect.width) - 0.5) * 6;
+        card.style.transform = `translateY(-8px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      });
+
+      card.addEventListener("mouseleave", () => {
+        card.style.transform = "";
+      });
     });
-    html+='</div>';
-  }
-  html+='<div class="filter-row"><button class="filter-pill'+(state.reviewFilter==='all'?' active':'')+'" data-f="all">All ('+total+')</button><button class="filter-pill'+(state.reviewFilter==='wrong'?' active':'')+'" data-f="wrong">Wrong ('+(total-correct)+')</button><button class="filter-pill'+(state.reviewFilter==='right'?' active':'')+'" data-f="right">Right ('+correct+')</button></div>';
-  // Review
-  html+='<div id="review-list">';
-  qs.forEach((q,i)=>{
-    const sel=state.selections[i];
-    const isRight=sel===q.c;
-    if(state.reviewFilter==='wrong'&&isRight)return;
-    if(state.reviewFilter==='right'&&!isRight)return;
-    const cls=isRight?'was-right':'was-wrong';
-    const label=isRight?'Correct':(sel===null?'Not answered':'Incorrect');
-    html+='<div class="review-q '+cls+'">';
-    html+='<div class="label">Q'+(i+1)+' · Domain '+q.d+' · '+label+'</div>';
-    html+='<div class="qline">'+q.q+'</div>';
-    if(!isRight){
-      if(sel!==null){
-        html+='<div class="picked">Your answer: '+String.fromCharCode(65+sel)+') '+q.o[sel]+'</div>';
-      }
-      html+='<div class="correct">Correct: '+String.fromCharCode(65+q.c)+') '+q.o[q.c]+'</div>';
-    }else{
-      html+='<div class="correct">Correct: '+String.fromCharCode(65+q.c)+') '+q.o[q.c]+'</div>';
-    }
-    html+='<div class="expl">'+q.e+'</div>';
-    html+='</div>';
-  });
-  html+='</div>';
-  html+='<div style="display:flex;gap:8px;margin-top:1rem;">';
-  html+='<button class="nav-btn" id="r-retry" style="flex:1;">Retry (new random order)</button>';
-  html+='<button class="primary-btn" id="r-home" style="flex:1;">Back to menu</button>';
-  html+='</div>';
-  $('content').innerHTML=html;
-  $('back-home').onclick=()=>{state.mode='home';render();window.scrollTo(0,0);};
-  document.querySelectorAll('[data-f]').forEach(b=>{
-    b.onclick=()=>{state.reviewFilter=b.dataset.f;renderResults();};
-  });
-  $('r-retry').onclick=()=>{
-    if(state.quiz.type==='domain')startQuiz('domain',state.quiz.domain);
-    else if(state.quiz.type==='combined')startQuiz('combined');
-    else startQuiz('mock',state.quiz.version);
-  };
-  $('r-home').onclick=()=>{state.mode='home';render();window.scrollTo(0,0);};
-}
-
-function render(){
-  if(state.mode==='home')renderHome();
-  else if(state.mode==='quiz')renderQuiz();
-  else if(state.mode==='results')renderResults();
-}
-
-render();
-</script>
+  </script>
+</body>
+</html>
