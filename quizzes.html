@@ -148,6 +148,14 @@ body.dark-mode .review-q.was-wrong .label,body.dark-mode .review-q .picked{color
 body.dark-mode .dashboard-grid *,body.dark-mode .mode-grid *,body.dark-mode .navigator *,body.dark-mode .shortcut-note,body.dark-mode .explain-box,body.dark-mode .explain-box *{color:#fff!important;}
 @media(max-width:760px){.dashboard-grid,.mode-grid{grid-template-columns:1fr}.nav-dot{width:32px;height:32px}}
 
+
+/* Keep section labels readable on the dark/glass page background in light mode */
+.quiz-section-title,
+.quiz-section-note{
+  color:#ffffff !important;
+  text-shadow:0 2px 12px rgba(0,0,0,.30);
+}
+
 </style>
 </head>
 <body>
@@ -703,7 +711,7 @@ function renderHome(){
     html+='</button>';
   });
   html+='</div>';
-  html+='<h3 style="font-size:14px;margin:1.5rem 0 0.5rem;color:var(--color-text-secondary);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Combined</h3>';
+  html+='<h3 class="quiz-section-title" style="font-size:14px;margin:1.5rem 0 0.5rem;letter-spacing:0.05em;text-transform:uppercase;font-weight:800;">Combined</h3>';
   html+='<div style="margin-bottom:1.25rem;">';
   html+='<button class="card-btn" data-act="combined">';
   html+='<div class="top">All domains</div>';
@@ -711,8 +719,8 @@ function renderHome(){
   html+='<div class="bot">60 questions, weighted by exam content · randomized</div>';
   html+='</button>';
   html+='</div>';
-  html+='<h3 style="font-size:14px;margin:1.5rem 0 0.5rem;color:var(--color-text-secondary);letter-spacing:0.05em;text-transform:uppercase;font-weight:500;">Full mock exams</h3>';
-  html+='<p style="font-size:12px;color:var(--color-text-secondary);margin:0 0 12px;">190 questions in 4 hours simulates the real CPP exam. Each version has a different question set; question order randomizes every attempt.</p>';
+  html+='<h3 class="quiz-section-title" style="font-size:14px;margin:1.5rem 0 0.5rem;letter-spacing:0.05em;text-transform:uppercase;font-weight:800;">Full mock exams</h3>';
+  html+='<p class="quiz-section-note" style="font-size:12px;margin:0 0 12px;">190 questions in 4 hours simulates the real CPP exam. Each version has a different question set; question order randomizes every attempt.</p>';
   html+='<div style="display:grid;grid-template-columns:1fr;gap:8px;">';
   [1,2,3].forEach(v=>{
     html+='<button class="card-btn" data-act="mock" data-arg="'+v+'">';
