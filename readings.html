@@ -31,6 +31,75 @@ a{text-decoration:none;color:inherit}button,input{font-family:inherit}.sr-only{p
 .sec{padding:22px;margin:0 0 12px;border:1px solid var(--b1);border-radius:24px;background:var(--card);color:var(--text);cursor:pointer;box-shadow:0 12px 34px rgba(0,0,0,.10);transition:.2s}.sec:hover{transform:translateY(-2px);border-color:var(--b2)}.sec h4{font-size:20px;font-weight:850;margin:0 0 10px;letter-spacing:-.035em;color:var(--text)}.sec p{font-size:15px;line-height:1.8;margin:0 0 12px;color:var(--text)}.sec.speaking{background:linear-gradient(135deg,rgba(79,140,255,.18),rgba(56,217,150,.14)),var(--card);border-color:var(--info);box-shadow:0 18px 48px rgba(79,140,255,.18)}
 .pager{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1.2rem}.pager button{padding:16px;border-radius:20px;border:1px solid var(--b1);background:var(--card);color:var(--text);cursor:pointer;box-shadow:0 12px 30px rgba(0,0,0,.10)}
 body.dark-mode *{color-scheme:dark}body:not(.dark-mode) *{color-scheme:light}
+
+.voice-panel{
+  display:grid;
+  grid-template-columns:1.2fr .8fr .8fr auto;
+  gap:10px;
+  align-items:end;
+  margin:0 0 1rem;
+  padding:14px;
+  border:1px solid var(--b1);
+  border-radius:24px;
+  background:var(--bg2);
+  color:var(--text);
+}
+.voice-field{display:flex;flex-direction:column;gap:6px}
+.voice-field label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.07em;
+  font-weight:850;
+  color:var(--muted);
+}
+.voice-field select,.voice-field input{
+  width:100%;
+  border:1px solid var(--b1);
+  border-radius:14px;
+  background:var(--bg1);
+  color:var(--text);
+  padding:10px 12px;
+  font-size:13px;
+  outline:none;
+}
+.voice-field input[type="range"]{padding:0}
+.preview-btn{
+  height:40px;
+  align-self:end;
+  border:1px solid var(--b1);
+  border-radius:999px;
+  background:linear-gradient(135deg,#38d996,#4f8cff);
+  color:#fff;
+  font-weight:850;
+  cursor:pointer;
+  padding:0 14px;
+  box-shadow:0 12px 25px rgba(79,140,255,.20);
+}
+.reader-text{
+  transition:.2s ease;
+  border-radius:16px;
+}
+.reader-text.speaking-text{
+  background:linear-gradient(135deg,rgba(255,95,162,.20),rgba(79,140,255,.16));
+  outline:2px solid rgba(79,140,255,.42);
+  padding:10px 12px;
+  margin-left:-12px;
+  margin-right:-12px;
+  box-shadow:0 12px 28px rgba(79,140,255,.16);
+}
+body.dark-mode .reader-text.speaking-text{
+  background:linear-gradient(135deg,rgba(255,95,162,.28),rgba(79,140,255,.22));
+  outline-color:rgba(147,197,253,.50);
+}
+body.dark-mode .voice-panel,
+body.dark-mode .voice-panel *,
+body.dark-mode .voice-field select,
+body.dark-mode .voice-field input{
+  color:#fff!important;
+}
+@media(max-width:880px){.voice-panel{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.voice-panel{grid-template-columns:1fr}.preview-btn{width:100%}}
+
 @media(max-width:880px){.nav{align-items:flex-start;flex-direction:column}.nav-actions{width:100%}.nav-link,.theme,.back{flex:1;text-align:center}.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr}}
 @media(max-width:560px){.app{width:min(100% - 22px,1180px)}.hero{padding:24px;border-radius:26px}.panel{padding:12px;border-radius:24px}.pager{grid-template-columns:1fr}.abar{position:static}}
 </style>
@@ -46,6 +115,7 @@ body.dark-mode *{color-scheme:dark}body:not(.dark-mode) *{color-scheme:light}
 <script>
 const THEME_KEY='cppStudyTheme';
 const READINGS_PROGRESS_KEY='cppReadingsProgressV2';
+const VOICE_SETTINGS_KEY='cppVoiceSettingsV2';
 const READINGS=[
 {id:'v1r1',d:'A',t:'Worker classification and the FLSA',sec:[
 {h:'Why classification matters',p:'Before any paycheck gets cut, you have to answer two separate questions about every person doing work for the company. First, is this person an employee or an independent contractor? That single decision controls everything downstream: whether you withhold federal income tax, whether you pay employer FICA, whether you issue a W-2 or a 1099 at year-end, whether the person is covered by benefits, workers compensation, and unemployment insurance, and whether the company can be sued under employment statutes. Second, if the person is an employee, are they exempt from the Fair Labor Standards Act, or non-exempt? That decision controls whether minimum wage applies, whether overtime kicks in after forty hours in a workweek, and how detailed your timekeeping needs to be.',sub:[
@@ -911,7 +981,7 @@ const READINGS=[
 ]}
 ]}
 ];
-const state={readSel:null,domain:'all',query:'',progress:{},audio:{playing:false,paused:false,idx:0,subIdx:-1,rate:1.0}};
+const state={readSel:null,domain:'all',query:'',progress:{},voices:[],voiceSettings:{voiceName:'',style:'soothing',rate:0.85,pitch:0.85,volume:1},audio:{playing:false,paused:false,idx:0,subIdx:-1,rate:0.85}};
 function $(id){return document.getElementById(id);}
 function safeParse(j,f){try{return JSON.parse(j)||f}catch(e){return f}}
 function applyTheme(){const saved=localStorage.getItem(THEME_KEY);const useDark=saved?saved==='dark':(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.body.classList.toggle('dark-mode',useDark);const b=$('theme-toggle');if(b)b.textContent=useDark?'Light mode':'Dark mode'}
@@ -919,6 +989,101 @@ function toggleTheme(){localStorage.setItem(THEME_KEY,document.body.classList.co
 applyTheme();document.addEventListener('click',e=>{if(e.target&&e.target.id==='theme-toggle')toggleTheme()});
 function loadProgress(){state.progress=safeParse(localStorage.getItem(READINGS_PROGRESS_KEY),{})}
 function saveProgress(){localStorage.setItem(READINGS_PROGRESS_KEY,JSON.stringify(state.progress))}
+function loadVoiceSettings(){
+  const saved=safeParse(localStorage.getItem(VOICE_SETTINGS_KEY),null);
+  if(saved){
+    state.voiceSettings={...state.voiceSettings,...saved};
+    state.audio.rate=state.voiceSettings.rate;
+  }
+}
+function saveVoiceSettings(){
+  localStorage.setItem(VOICE_SETTINGS_KEY,JSON.stringify(state.voiceSettings));
+}
+function refreshVoices(){
+  state.voices=window.speechSynthesis?window.speechSynthesis.getVoices():[];
+  if(!state.voiceSettings.voiceName && state.voices.length){
+    const preferred=state.voices.find(v=>/Microsoft Aria/i.test(v.name))
+      || state.voices.find(v=>/Aria/i.test(v.name))
+      || state.voices.find(v=>/Jenny|Samantha|Ava|Emma|Google US English/i.test(v.name))
+      || state.voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('en'))
+      || state.voices[0];
+    if(preferred){
+      state.voiceSettings.voiceName=preferred.name;
+      saveVoiceSettings();
+    }
+  }
+}
+function selectedVoice(){
+  if(!state.voices.length)refreshVoices();
+  return state.voices.find(v=>v.name===state.voiceSettings.voiceName)
+    || state.voices.find(v=>/Microsoft Aria/i.test(v.name))
+    || state.voices.find(v=>/Aria/i.test(v.name))
+    || state.voices.find(v=>v.lang&&v.lang.toLowerCase().startsWith('en'))
+    || state.voices[0];
+}
+function applyNarrationStyle(style){
+  const styles={
+    study:{rate:1.0,pitch:1.0,volume:1},
+    natural:{rate:0.95,pitch:0.95,volume:1},
+    soothing:{rate:0.85,pitch:0.85,volume:1},
+    review:{rate:1.25,pitch:1.0,volume:1},
+    custom:{rate:state.voiceSettings.rate,pitch:state.voiceSettings.pitch,volume:state.voiceSettings.volume}
+  };
+  const next=styles[style]||styles.soothing;
+  state.voiceSettings.style=style;
+  state.voiceSettings.rate=next.rate;
+  state.voiceSettings.pitch=next.pitch;
+  state.voiceSettings.volume=next.volume;
+  state.audio.rate=next.rate;
+  saveVoiceSettings();
+}
+function previewVoice(){
+  if(!window.speechSynthesis)return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance('This is your soothing CPP study narration voice.');
+  const v=selectedVoice();
+  if(v)u.voice=v;
+  u.rate=state.voiceSettings.rate;
+  u.pitch=state.voiceSettings.pitch;
+  u.volume=state.voiceSettings.volume;
+  window.speechSynthesis.speak(u);
+}
+function renderVoicePanel(){
+  refreshVoices();
+  const options=state.voices.map(v=>{
+    const label=v.name+(v.lang?' · '+v.lang:'');
+    return '<option value="'+v.name.replace(/"/g,'&quot;')+'" '+(v.name===state.voiceSettings.voiceName?'selected':'')+'>'+label+'</option>';
+  }).join('');
+  return '<div class="voice-panel">'+
+    '<div class="voice-field"><label for="voice-select">Voice</label><select id="voice-select">'+options+'</select></div>'+
+    '<div class="voice-field"><label for="style-select">Narration style</label><select id="style-select">'+
+      '<option value="soothing" '+(state.voiceSettings.style==='soothing'?'selected':'')+'>Slow & Soothing</option>'+
+      '<option value="natural" '+(state.voiceSettings.style==='natural'?'selected':'')+'>Natural Narrator</option>'+
+      '<option value="study" '+(state.voiceSettings.style==='study'?'selected':'')+'>Study Mode</option>'+
+      '<option value="review" '+(state.voiceSettings.style==='review'?'selected':'')+'>Fast Review</option>'+
+      '<option value="custom" '+(state.voiceSettings.style==='custom'?'selected':'')+'>Custom</option>'+
+    '</select></div>'+
+    '<div class="voice-field"><label for="pitch-range">Pitch <span id="pitch-label">'+state.voiceSettings.pitch.toFixed(2)+'</span></label><input id="pitch-range" type="range" min="0.6" max="1.4" step="0.05" value="'+state.voiceSettings.pitch+'"></div>'+
+    '<button class="preview-btn" id="preview-voice" type="button">Preview</button>'+
+    '<div class="voice-field"><label for="rate-range">Speed <span id="rate-label">'+state.voiceSettings.rate.toFixed(2)+'x</span></label><input id="rate-range" type="range" min="0.65" max="1.5" step="0.05" value="'+state.voiceSettings.rate+'"></div>'+
+    '<div class="voice-field"><label for="volume-range">Volume <span id="volume-label">'+Math.round(state.voiceSettings.volume*100)+'%</span></label><input id="volume-range" type="range" min="0.4" max="1" step="0.05" value="'+state.voiceSettings.volume+'"></div>'+
+  '</div>';
+}
+function bindVoicePanel(){
+  const voice=$('voice-select');
+  if(voice)voice.onchange=e=>{state.voiceSettings.voiceName=e.target.value;saveVoiceSettings();};
+  const style=$('style-select');
+  if(style)style.onchange=e=>{applyNarrationStyle(e.target.value);renderReading();};
+  const pitch=$('pitch-range');
+  if(pitch)pitch.oninput=e=>{state.voiceSettings.pitch=parseFloat(e.target.value);state.voiceSettings.style='custom';saveVoiceSettings();const l=$('pitch-label');if(l)l.textContent=state.voiceSettings.pitch.toFixed(2);const s=$('style-select');if(s)s.value='custom';};
+  const rate=$('rate-range');
+  if(rate)rate.oninput=e=>{state.voiceSettings.rate=parseFloat(e.target.value);state.audio.rate=state.voiceSettings.rate;state.voiceSettings.style='custom';saveVoiceSettings();const l=$('rate-label');if(l)l.textContent=state.voiceSettings.rate.toFixed(2)+'x';const s=$('style-select');if(s)s.value='custom';updateAudioUI();};
+  const volume=$('volume-range');
+  if(volume)volume.oninput=e=>{state.voiceSettings.volume=parseFloat(e.target.value);state.voiceSettings.style='custom';saveVoiceSettings();const l=$('volume-label');if(l)l.textContent=Math.round(state.voiceSettings.volume*100)+'%';const s=$('style-select');if(s)s.value='custom';};
+  const preview=$('preview-voice');
+  if(preview)preview.onclick=previewVoice;
+}
+
 function getDomainName(d){return ({A:'Core Payroll',B:'Compliance',C:'Paycheck Calculation',D:'Process',E:'Administration',F:'Audits',G:'Accounting'})[d]||d}
 function totalSections(){return READINGS.reduce((s,r)=>s+r.sec.length,0)}
 function filteredReadings(){const q=state.query.trim().toLowerCase();return READINGS.filter(r=>{if(state.domain!=='all'&&r.d!==state.domain)return false;if(!q)return true;const hay=(r.t+' '+r.d+' '+r.sec.map(s=>s.h+' '+s.p+' '+((s.sub||[]).map(x=>x.p).join(' '))).join(' ')).toLowerCase();return hay.includes(q)})}
@@ -926,23 +1091,23 @@ function updateStats(){const completed=READINGS.filter(r=>(state.progress[r.id]|
 function tabs(){return '<div class="tabs">'+['all','A','B','C','D','E','F','G'].map(d=>'<button class="tab '+(state.domain===d?'active':'')+'" data-domain="'+d+'">'+(d==='all'?'All Domains':'Domain '+d)+'</button>').join('')+'</div>'}
 function renderLibrary(){audioStop();state.readSel=null;updateStats();const list=filteredReadings();let body='<div class="toolbar"><input id="search" class="search" type="search" placeholder="Search chapters, topics, keywords..." value="'+state.query.replace(/"/g,'&quot;')+'"><button class="small" id="reset">Reset progress</button></div>'+tabs()+'<div class="grid">';if(!list.length){body+='<div class="reader-head"><p class="meta">No results</p><h2>Try a different search or domain filter.</h2></div>'}else{list.forEach(r=>{const pct=state.progress[r.id]||0;body+='<button class="chapter" data-r="'+r.id+'"><p class="meta">Domain '+r.d+' · '+getDomainName(r.d)+' · '+r.sec.length+' sections</p><p class="ctitle">'+r.t+'</p><p class="csub">'+(pct?pct+'% complete · ':'')+'Tap to read or listen</p></button>'})}body+='</div>';$('content').innerHTML=body;$('search').oninput=e=>{state.query=e.target.value;renderLibraryNoStop()};$('reset').onclick=()=>{if(confirm('Clear reading progress?')){state.progress={};saveProgress();renderLibraryNoStop()}};document.querySelectorAll('[data-domain]').forEach(b=>b.onclick=()=>{state.domain=b.dataset.domain;renderLibraryNoStop()});document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>openReading(b.dataset.r))}
 function renderLibraryNoStop(){state.readSel=null;updateStats();const list=filteredReadings();let body='<div class="toolbar"><input id="search" class="search" type="search" placeholder="Search chapters, topics, keywords..." value="'+state.query.replace(/"/g,'&quot;')+'"><button class="small" id="reset">Reset progress</button></div>'+tabs()+'<div class="grid">';if(!list.length){body+='<div class="reader-head"><p class="meta">No results</p><h2>Try a different search or domain filter.</h2></div>'}else{list.forEach(r=>{const pct=state.progress[r.id]||0;body+='<button class="chapter" data-r="'+r.id+'"><p class="meta">Domain '+r.d+' · '+getDomainName(r.d)+' · '+r.sec.length+' sections</p><p class="ctitle">'+r.t+'</p><p class="csub">'+(pct?pct+'% complete · ':'')+'Tap to read or listen</p></button>'})}body+='</div>';$('content').innerHTML=body;$('search').oninput=e=>{state.query=e.target.value;renderLibraryNoStop()};$('reset').onclick=()=>{if(confirm('Clear reading progress?')){state.progress={};saveProgress();renderLibraryNoStop()}};document.querySelectorAll('[data-domain]').forEach(b=>b.onclick=()=>{state.domain=b.dataset.domain;renderLibraryNoStop()});document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>openReading(b.dataset.r))}
-function getChunks(r){const chunks=[];r.sec.forEach((sec,si)=>{chunks.push({secIdx:si,subIdx:-1,text:sec.h+'. '+sec.p});(sec.sub||[]).forEach((sub,subI)=>chunks.push({secIdx:si,subIdx:subI,text:sub.p}))});return chunks}
+function getChunks(r){const chunks=[];r.sec.forEach((sec,si)=>{chunks.push({secIdx:si,subIdx:-1,text:sec.h+'. '+sec.p,elId:'p-'+si+'-main'});(sec.sub||[]).forEach((sub,subI)=>chunks.push({secIdx:si,subIdx:subI,text:sub.p,elId:'p-'+si+'-'+subI}))});return chunks}
 function markProgress(r){const pct=Math.max(state.progress[r.id]||0,Math.round(((state.audio.idx+1)/r.sec.length)*100));state.progress[r.id]=Math.min(100,pct);saveProgress();updateStats()}
-function speakChunk(r,chunks,idx){if(idx>=chunks.length){state.audio.playing=false;state.audio.idx=0;state.audio.subIdx=-1;state.progress[r.id]=100;saveProgress();updateStats();updateAudioUI();highlightSection();return}const c=chunks[idx];state.audio.idx=c.secIdx;state.audio.subIdx=c.subIdx;markProgress(r);highlightSection();const u=new SpeechSynthesisUtterance(c.text);u.rate=state.audio.rate;u.pitch=1;u.volume=1;const voices=window.speechSynthesis.getVoices();const en=voices.find(v=>v.lang&&v.lang.startsWith('en'));if(en)u.voice=en;u.onend=()=>{if(state.audio.playing)speakChunk(r,chunks,idx+1)};u.onerror=()=>{state.audio.playing=false;updateAudioUI()};window.speechSynthesis.speak(u)}
+function speakChunk(r,chunks,idx){if(idx>=chunks.length){state.audio.playing=false;state.audio.idx=0;state.audio.subIdx=-1;state.progress[r.id]=100;saveProgress();updateStats();updateAudioUI();highlightSection();return}const c=chunks[idx];state.audio.idx=c.secIdx;state.audio.subIdx=c.subIdx;markProgress(r);highlightSection();const u=new SpeechSynthesisUtterance(c.text);const v=selectedVoice();if(v)u.voice=v;u.rate=state.voiceSettings.rate;u.pitch=state.voiceSettings.pitch;u.volume=state.voiceSettings.volume;u.onend=()=>{if(state.audio.playing)speakChunk(r,chunks,idx+1)};u.onerror=()=>{state.audio.playing=false;updateAudioUI()};window.speechSynthesis.speak(u)}
 function audioPlay(){if(!state.readSel)return;if(state.audio.paused){window.speechSynthesis.resume();state.audio.paused=false;updateAudioUI();return}const r=READINGS.find(x=>x.id===state.readSel);const chunks=getChunks(r);let idx=chunks.findIndex(c=>c.secIdx===state.audio.idx&&c.subIdx===state.audio.subIdx);if(idx<0)idx=0;state.audio.playing=true;state.audio.paused=false;updateAudioUI();window.speechSynthesis.cancel();speakChunk(r,chunks,idx)}
 function audioPause(){window.speechSynthesis.pause();state.audio.paused=true;updateAudioUI()}
 function audioStop(){if(window.speechSynthesis)window.speechSynthesis.cancel();state.audio.playing=false;state.audio.paused=false;state.audio.idx=0;state.audio.subIdx=-1;updateAudioUI();highlightSection()}
 function audioNextSection(){if(!state.readSel)return;const r=READINGS.find(x=>x.id===state.readSel);if(state.audio.idx<r.sec.length-1){state.audio.idx++;state.audio.subIdx=-1;markProgress(r);if(state.audio.playing){window.speechSynthesis.cancel();const chunks=getChunks(r);speakChunk(r,chunks,chunks.findIndex(c=>c.secIdx===state.audio.idx&&c.subIdx===-1))}else{highlightSection();updateAudioUI()}}}
 function audioPrevSection(){if(!state.readSel)return;const r=READINGS.find(x=>x.id===state.readSel);if(state.audio.idx>0){state.audio.idx--;state.audio.subIdx=-1;if(state.audio.playing){window.speechSynthesis.cancel();const chunks=getChunks(r);speakChunk(r,chunks,chunks.findIndex(c=>c.secIdx===state.audio.idx&&c.subIdx===-1))}else{highlightSection();updateAudioUI()}}}
-function audioSetRate(r){state.audio.rate=r;if(state.audio.playing&&state.readSel){const reading=READINGS.find(x=>x.id===state.readSel);window.speechSynthesis.cancel();const chunks=getChunks(reading);speakChunk(reading,chunks,chunks.findIndex(c=>c.secIdx===state.audio.idx&&c.subIdx===state.audio.subIdx))}updateAudioUI()}
-function updateAudioUI(){if(!state.readSel)return;const r=READINGS.find(x=>x.id===state.readSel);const p=$('a-play');if(p)p.innerHTML=(state.audio.playing&&!state.audio.paused)?'&#9612;&#9612;':'&#9654;';const stat=$('a-stat');if(stat)stat.textContent=(state.audio.playing?(state.audio.paused?'Paused':'Playing'):'Stopped')+' · Section '+(state.audio.idx+1)+' of '+r.sec.length+' · '+state.audio.rate+'x';const fill=$('fill');if(fill)fill.style.width=(((state.audio.idx+1)/r.sec.length)*100)+'%';document.querySelectorAll('.aspd').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.rate)===state.audio.rate))}
-function highlightSection(){document.querySelectorAll('.sec').forEach((el,i)=>el.classList.toggle('speaking',state.audio.playing&&i===state.audio.idx));if(state.audio.playing){const el=document.querySelector('.sec.speaking');if(el)el.scrollIntoView({behavior:'smooth',block:'center'})}}
+function audioSetRate(r){state.audio.rate=r;state.voiceSettings.rate=r;state.voiceSettings.style='custom';saveVoiceSettings();if(state.audio.playing&&state.readSel){const reading=READINGS.find(x=>x.id===state.readSel);window.speechSynthesis.cancel();const chunks=getChunks(reading);speakChunk(reading,chunks,chunks.findIndex(c=>c.secIdx===state.audio.idx&&c.subIdx===state.audio.subIdx))}updateAudioUI()}
+function updateAudioUI(){if(!state.readSel)return;const r=READINGS.find(x=>x.id===state.readSel);const p=$('a-play');if(p)p.innerHTML=(state.audio.playing&&!state.audio.paused)?'&#9612;&#9612;':'&#9654;';const stat=$('a-stat');if(stat)stat.textContent=(state.audio.playing?(state.audio.paused?'Paused':'Playing'):'Stopped')+' · Section '+(state.audio.idx+1)+' of '+r.sec.length+' · '+state.voiceSettings.rate+'x';const fill=$('fill');if(fill)fill.style.width=(((state.audio.idx+1)/r.sec.length)*100)+'%';document.querySelectorAll('.aspd').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.rate)===state.audio.rate))}
+function highlightSection(){document.querySelectorAll('.sec').forEach((el,i)=>el.classList.toggle('speaking',state.audio.playing&&i===state.audio.idx));document.querySelectorAll('.reader-text').forEach(el=>el.classList.remove('speaking-text'));if(state.audio.playing&&state.readSel){const r=READINGS.find(x=>x.id===state.readSel);const chunks=getChunks(r);const active=chunks.find(c=>c.secIdx===state.audio.idx&&c.subIdx===state.audio.subIdx);const el=active?document.getElementById(active.elId):document.querySelector('.sec.speaking');if(el){el.classList.add('speaking-text');el.scrollIntoView({behavior:'smooth',block:'center'});}}}
 function openReading(id){audioStop();state.readSel=id;state.audio.idx=0;state.audio.subIdx=-1;renderReading();window.scrollTo({top:0,behavior:'smooth'})}
-function renderReading(){const r=READINGS.find(x=>x.id===state.readSel);const i=READINGS.findIndex(x=>x.id===r.id);const prev=i>0?READINGS[i-1]:null;const nxt=i<READINGS.length-1?READINGS[i+1]:null;let body='<div class="reader-actions"><button id="r-back" class="small">← All chapters</button><button id="complete" class="small">Mark complete</button></div><div class="reader-head"><p class="meta">Domain '+r.d+' · '+getDomainName(r.d)+'</p><h2>'+r.t+'</h2><div class="progress"><div class="fill" id="fill"></div></div></div><div class="abar"><div class="abar-row"><button class="abtn icon" id="a-prev">«</button><button class="abtn primary icon" id="a-play">&#9654;</button><button class="abtn icon" id="a-stop">■</button><button class="abtn icon" id="a-next">»</button><div style="display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;"><button class="aspd" data-rate="0.75">0.75x</button><button class="aspd active" data-rate="1">1x</button><button class="aspd" data-rate="1.25">1.25x</button><button class="aspd" data-rate="1.5">1.5x</button></div></div><p class="astat" id="a-stat">Stopped · Section 1 of '+r.sec.length+' · 1x</p></div><div>';r.sec.forEach((s,si)=>{body+='<div class="sec" data-i="'+si+'"><h4>'+s.h+'</h4><p>'+s.p+'</p>';(s.sub||[]).forEach(sub=>body+='<p>'+sub.p+'</p>');body+='</div>'});body+='</div><div class="pager">';body+=prev?'<button id="prev-r"><p class="meta">← Previous</p><p class="ctitle">'+prev.t+'</p></button>':'<div></div>';body+=nxt?'<button id="next-r"><p class="meta">Next →</p><p class="ctitle">'+nxt.t+'</p></button>':'<div></div>';body+='</div>';$('content').innerHTML=body;$('r-back').onclick=()=>{audioStop();renderLibrary()};$('complete').onclick=()=>{state.progress[r.id]=100;saveProgress();updateStats();updateAudioUI()};$('a-play').onclick=()=>{if(state.audio.playing&&!state.audio.paused)audioPause();else audioPlay()};$('a-stop').onclick=audioStop;$('a-next').onclick=audioNextSection;$('a-prev').onclick=audioPrevSection;document.querySelectorAll('.aspd').forEach(b=>b.onclick=()=>audioSetRate(parseFloat(b.dataset.rate)));if($('prev-r'))$('prev-r').onclick=()=>openReading(prev.id);if($('next-r'))$('next-r').onclick=()=>openReading(nxt.id);document.querySelectorAll('.sec').forEach(el=>el.onclick=()=>{const idx=parseInt(el.dataset.i);state.audio.idx=idx;state.audio.subIdx=-1;markProgress(r);if(state.audio.playing){window.speechSynthesis.cancel();const chunks=getChunks(r);speakChunk(r,chunks,chunks.findIndex(c=>c.secIdx===idx&&c.subIdx===-1))}else{highlightSection();updateAudioUI()}});updateAudioUI()}
-if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>window.speechSynthesis.getVoices()}
+function renderReading(){const r=READINGS.find(x=>x.id===state.readSel);const i=READINGS.findIndex(x=>x.id===r.id);const prev=i>0?READINGS[i-1]:null;const nxt=i<READINGS.length-1?READINGS[i+1]:null;let body='<div class="reader-actions"><button id="r-back" class="small">← All chapters</button><button id="complete" class="small">Mark complete</button></div><div class="reader-head"><p class="meta">Domain '+r.d+' · '+getDomainName(r.d)+'</p><h2>'+r.t+'</h2><div class="progress"><div class="fill" id="fill"></div></div></div>'+renderVoicePanel()+'<div class="abar"><div class="abar-row"><button class="abtn icon" id="a-prev">«</button><button class="abtn primary icon" id="a-play">&#9654;</button><button class="abtn icon" id="a-stop">■</button><button class="abtn icon" id="a-next">»</button><div style="display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;"><button class="aspd" data-rate="0.75">0.75x</button><button class="aspd active" data-rate="1">1x</button><button class="aspd" data-rate="1.25">1.25x</button><button class="aspd" data-rate="1.5">1.5x</button></div></div><p class="astat" id="a-stat">Stopped · Section 1 of '+r.sec.length+' · 1x</p></div><div>';r.sec.forEach((s,si)=>{body+='<div class="sec" data-i="'+si+'"><h4>'+s.h+'</h4><p class="reader-text" id="p-'+si+'-main">'+s.p+'</p>';(s.sub||[]).forEach((sub,subI)=>body+='<p class="reader-text" id="p-'+si+'-'+subI+'">'+sub.p+'</p>');body+='</div>'});body+='</div><div class="pager">';body+=prev?'<button id="prev-r"><p class="meta">← Previous</p><p class="ctitle">'+prev.t+'</p></button>':'<div></div>';body+=nxt?'<button id="next-r"><p class="meta">Next →</p><p class="ctitle">'+nxt.t+'</p></button>':'<div></div>';body+='</div>';$('content').innerHTML=body;$('r-back').onclick=()=>{audioStop();renderLibrary()};$('complete').onclick=()=>{state.progress[r.id]=100;saveProgress();updateStats();updateAudioUI()};$('a-play').onclick=()=>{if(state.audio.playing&&!state.audio.paused)audioPause();else audioPlay()};$('a-stop').onclick=audioStop;$('a-next').onclick=audioNextSection;$('a-prev').onclick=audioPrevSection;document.querySelectorAll('.aspd').forEach(b=>b.onclick=()=>audioSetRate(parseFloat(b.dataset.rate)));bindVoicePanel();if($('prev-r'))$('prev-r').onclick=()=>openReading(prev.id);if($('next-r'))$('next-r').onclick=()=>openReading(nxt.id);document.querySelectorAll('.sec').forEach(el=>el.onclick=()=>{const idx=parseInt(el.dataset.i);state.audio.idx=idx;state.audio.subIdx=-1;markProgress(r);if(state.audio.playing){window.speechSynthesis.cancel();const chunks=getChunks(r);speakChunk(r,chunks,chunks.findIndex(c=>c.secIdx===idx&&c.subIdx===-1))}else{highlightSection();updateAudioUI()}});updateAudioUI()}
+if(window.speechSynthesis){refreshVoices();window.speechSynthesis.onvoiceschanged=()=>{refreshVoices();if(state.readSel)renderReading();}}
 document.addEventListener('keydown',e=>{const tag=(document.activeElement&&document.activeElement.tagName||'').toLowerCase();if(tag==='input'||tag==='textarea'||!state.readSel)return;if(e.code==='Space'){e.preventDefault();if(state.audio.playing&&!state.audio.paused)audioPause();else audioPlay()}if(e.key==='ArrowRight')audioNextSection();if(e.key==='ArrowLeft')audioPrevSection();if(e.key.toLowerCase()==='s')audioStop()});
 window.addEventListener('beforeunload',()=>{if(window.speechSynthesis)window.speechSynthesis.cancel()});
-loadProgress();updateStats();renderLibrary();
+loadProgress();loadVoiceSettings();refreshVoices();updateStats();renderLibrary();
 </script>
 </body>
 </html>
