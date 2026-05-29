@@ -387,19 +387,101 @@
     .shuffle-row{align-items:flex-start;flex-direction:column;}
     .shuffle-btn{width:100%;}
   }
+
+  .back-home{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:11px 15px;
+    border-radius:999px;
+    background:rgba(255,255,255,.95);
+    color:#101828;
+    font-size:13px;
+    font-weight:850;
+    border:1px solid rgba(255,255,255,.45);
+    box-shadow:0 12px 28px rgba(0,0,0,.18);
+    transition:.2s ease;
+    white-space:nowrap;
+  }
+  .back-home:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 34px rgba(0,0,0,.24);
+  }
+  body.dark-mode .back-home{
+    background:rgba(255,255,255,.96);
+    color:#101828;
+  }
+
+  body.dark-mode, body.dark-mode *{
+    color-scheme:dark;
+  }
+  body:not(.dark-mode), body:not(.dark-mode) *{
+    color-scheme:light;
+  }
+
+  body.dark-mode .study-panel,
+  body.dark-mode .card,
+  body.dark-mode .shuffle-row,
+  body.dark-mode .pill,
+  body.dark-mode .ctrl,
+  body.dark-mode .nav-btn{
+    color:#ffffff !important;
+  }
+
+  body.dark-mode .card .q,
+  body.dark-mode .card .a,
+  body.dark-mode .card .hint,
+  body.dark-mode .domain-badge,
+  body.dark-mode .stats,
+  body.dark-mode .stats span,
+  body.dark-mode .stats strong,
+  body.dark-mode #shuffle-bar,
+  body.dark-mode #card-area,
+  body.dark-mode #filters{
+    color:#ffffff !important;
+  }
+
+  body:not(.dark-mode) .study-panel,
+  body:not(.dark-mode) .card,
+  body:not(.dark-mode) .shuffle-row,
+  body:not(.dark-mode) .pill,
+  body:not(.dark-mode) .ctrl,
+  body:not(.dark-mode) .nav-btn,
+  body:not(.dark-mode) .card .q,
+  body:not(.dark-mode) .card .a,
+  body:not(.dark-mode) .card .hint,
+  body:not(.dark-mode) .domain-badge,
+  body:not(.dark-mode) .stats,
+  body:not(.dark-mode) .stats span,
+  body:not(.dark-mode) .stats strong{
+    color:#101828 !important;
+  }
+
+  body.dark-mode .theme-btn::before{content:"☀️ ";}
+  body:not(.dark-mode) .theme-btn::before{content:"🌙 ";}
+
+  @media(max-width:760px){
+    .top-nav{gap:10px;}
+    .back-home,.brand,.nav-actions{width:100%;}
+    .brand{justify-content:center;}
+  }
+
 </style>
 
 <div class="app-shell">
   <nav class="top-nav" aria-label="Main navigation">
+    <a class="back-home" href="index.html" aria-label="Back to CPP Study Guide home">← Back to Home</a>
+
     <a class="brand" href="index.html" aria-label="CPP Study Guide home">
       <span class="brand-mark">✓</span>
       <span>CPP Study Guide</span>
     </a>
+
     <div class="nav-actions">
-      <a class="nav-link" href="index.html">Home</a>
       <a class="nav-link" href="quizzes.html">Quizzes</a>
       <a class="nav-link" href="readings.html">Readings</a>
-      <button class="theme-btn" id="theme-toggle" type="button">Toggle theme</button>
+      <button class="theme-btn" id="theme-toggle" type="button">Dark mode</button>
     </div>
   </nav>
 
